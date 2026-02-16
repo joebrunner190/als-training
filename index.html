@@ -1,399 +1,108 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ALS Training – NFS Rezertifizierung</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏥</text></svg>">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #0a0e1a; font-family: 'DM Sans', sans-serif; }
-    @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
-    @keyframes correctFlash { 0% { box-shadow: 0 0 0 0 rgba(34,197,94,0.6); } 100% { box-shadow: 0 0 40px 10px rgba(34,197,94,0); } }
-    @keyframes wrongShake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
-    button:hover { opacity: 0.92; }
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #2a2a4e; border-radius: 3px; }
-    input:focus { outline: none; }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<title>ALS Training – NFS Rezertifizierung</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏥</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:linear-gradient(180deg,#0a0e1a,#111827);color:#e0e8f0;min-height:100vh;-webkit-tap-highlight-color:transparent}
+button{font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:active{transform:scale(0.97)}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes correctPulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,0.5)}100%{box-shadow:0 0 30px 8px rgba(34,197,94,0)}}
+@keyframes wrongShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#2a2a4e;border-radius:3px}
+</style>
 </head>
 <body>
-  <div id="root"></div>
-  <script type="text/babel">
-    const { useState, useEffect, useCallback, useRef } = React;
+<div id="root"></div>
+<script>
+// Inline scenario data
+window.SCENARIOS=[{"id":1,"title":"Atemnot – Kaltschweißig","alarm":"RD-6D4 / Atembeschwerden-Kaltschweißig / ALS gelb","patient":"76J, männlich","melder":"Nachbar","eindruck":"Pat. liegt im Wohnzimmer, reagiert nicht, schnappt nach Luft","abcde":{"a":"Keine Verlegung sichtbar","b":"Keine suffiziente Atmung","c":"Kein Puls, Zyanose Lippen/Finger","d":"Keine Reaktion, Pupillen mittel-weit","e":"Keine Verletzungen"},"sample":{"s":"keine","a":"keine bekannt","m":"Metformin, Enalapril, Concor","p":"Diab. Typ II, Hypertonie, VHF","l":"nicht bekannt","e":"Nachbar fand Pat., lebt allein"},"vitals":{"af":"0","spo2":"64%","etco2":"12 mmHg","hf":"0","bd":"nicht messbar","rekap":">3 sek","bz":"110 mg/dl","ekg":"Asystolie","temp":"36°C"},"steps":[{"prompt":"Du triffst ein. Erster Eindruck – was machst du?","options":["Nachbarn befragen","Bewusstsein & Atmung prüfen, Hilfe holen","Sauerstoff geben","Blutdruck messen"],"correct":1,"feedback":"Bewusstsein prüfen (Ansprechen + Schmerzreiz) → keine Reaktion. Atmung prüfen → Schnappatmung = KEINE normale Atmung → Hilfe holen (NAH/NEF), CPR starten!"},{"prompt":"Patient reagiert nicht, Schnappatmung. Dein nächster Schritt?","options":["Stabile Seitenlage","CPR starten + Defibrillator anschließen","Erst Atemweg sichern mit LTS-D","Infusion vorbereiten"],"correct":1,"feedback":"CPR sofort starten! Defibrillator anschließen. Aufgabenverteilung: Du als TL → Kopf, P2 → Zugang, P3 → HDM."},{"prompt":"Defi zeigt Asystolie. Welches Vorgehen?","options":["Schock abgeben","CPR 2 Min + Adrenalin 1mg sofort i.v.","Amiodaron 300mg i.v.","Rhythmus nochmal analysieren"],"correct":1,"feedback":"Nicht schockbar (Asystolie/PEA) → CPR fortsetzen 2 Min. Adrenalin 1mg i.v. so schnell wie möglich, danach alle 3-5 Min. KEIN Amiodaron bei nicht schockbarem Rhythmus!"},{"prompt":"Während der CPR: Welche reversiblen Ursachen (4H/HITS) besprichst du mit dem Team?","options":["Nur Hypothermie","Nur Thrombose wegen VHF","Hypoxie, Hypovolämie, Hypo-/Hyperkaliämie, Hypothermie + Herzbeuteltamponade, Intoxikation, Thrombose, Spannungspneumothorax","Fixierungsfehler vermeiden"],"correct":2,"feedback":"Alle 4H und HITS systematisch durchgehen! Bei diesem Pat.: Thromboembolie (VHF!), Hypoxie, Hyperkaliämie (Metformin/Diabetes) besonders relevant. 10-für-10 Prinzip nutzen!"},{"prompt":"Fremdanamnese: Pat. hat Diabetes, VHF, Hypertonie. Medikamente: Metformin, Enalapril, Concor. Was ist die wahrscheinlichste Ursache?","options":["Hypoglykämie","Thromboembolie (Myokardinfarkt/Lungenembolie)","Spannungspneumothorax","Hypothermie"],"correct":1,"feedback":"VHF + kardiale Risikofaktoren → Thromboembolie (MI oder LE) ist die wahrscheinlichste Ursache. Bei V.a. Lungenembolie: Thrombolyse erwägen, dann CPR 60-90 Min fortsetzen!"}]},{"id":4,"title":"Kreislaufstillstand – Brustschmerzen","alarm":"RD-9E1 / Kreislaufstillstand / ALS rot – NEF mitalarmiert","patient":"84J, männlich","melder":"Sohn/Tochter","eindruck":"Vater zusammengebrochen, griff sich auf Brust","abcde":{"a":"Frei","b":"Keine Atmung","c":"Kein Puls","d":"Keine Reaktion, Pupillen weit","e":"Keine Verletzungen"},"sample":{"s":"keine","a":"keine bekannt","m":"Seroquel (Beruhigung)","p":"leichte Demenz","l":"nicht bekannt","e":"War den ganzen Tag anders, griff sich auf Brust"},"vitals":{"af":"0","spo2":"-","etco2":"10 mmHg initial","hf":"0","bd":"-","rekap":">3 sek","bz":"118 mg/dl","ekg":"Asystolie","temp":"35,8°C"},"steps":[{"prompt":"84J Mann, leblos am Boden, Sohn sagt er griff sich auf Brust. Deine ersten Maßnahmen?","options":["Erst vollständige Anamnese beim Sohn","CPR starten, Defi anschließen, NAH über laufende CPR informieren","Sauerstoff per Maske","12-Kanal-EKG schreiben"],"correct":1,"feedback":"Sofort CPR + Defi! NAH ist bereits alarmiert (ALS rot) → Information über laufende CPR geben. Keine Zeit für ausführliche Anamnese VOR CPR-Start!"},{"prompt":"Defi: Asystolie. CPR läuft. Atemwegssicherung – was wählst du?","options":["Guedel-Tubus reicht","LTS-D einlegen","Endotracheale Intubation","Nur Beutel-Maske"],"correct":1,"feedback":"Als NFS ohne NKI: LTS-D! Cuffdruck 50-60 cm H₂O. Danach Beatmung evaluieren (Kapnografie!). Bei gesichertem Atemweg: durchgehende HDM + Beatmung 10/min."},{"prompt":"LTS-D liegt. Kapnografie zeigt etCO₂ 10 mmHg, steigend. Was sagt dir der Wert?","options":["Alles bestens","Sehr niedrig – HDM-Qualität verbessern","Hyperventilation – langsamer beatmen","Tubus liegt falsch"],"correct":1,"feedback":"etCO₂ 10 mmHg ist sehr niedrig. Exzellente HDM → 15-18 mmHg. HDM-Qualität optimieren: Drucktiefe 5-6cm, Frequenz 100-120/min, vollständige Entlastung!"},{"prompt":"Team-Timeout (10-für-10): 4H und HITS besprechen. Was ist bei diesem Patienten am wahrscheinlichsten?","options":["Hypothermie (35,8°C ist grenzwertig)","Thromboembolie (Brustschmerzen → V.a. MI)","Spannungspneumothorax","Intoxikation (Seroquel)"],"correct":1,"feedback":"Brustschmerzen vor Kollaps → V.a. Myokardinfarkt (Thrombose koronar). 4H: Hypoxie behandeln wir bereits. HITS: Thrombose wahrscheinlichste Ursache. Bei ROSC → sofort 12-Kanal-EKG!"},{"prompt":"NEF trifft ein. Wie übergibst du?","options":["Nur sagen 'wir reanimieren'","ABCDE-strukturierte Übergabe mit Verdachtsdiagnose","Erst CPR stoppen dann reden","Dem Notarzt alles übergeben und zurücktreten"],"correct":1,"feedback":"Strukturierte Übergabe nach Priorität: Situation (CPR seit X Min), ABCDE-Befunde, Maßnahmen, Medikamente, Rhythmus, Verdachtsdiagnose (V.a. MI), SAMPLE. CPR dabei NICHT unterbrechen!"}]},{"id":6,"title":"Sturz – Kammerflimmern","alarm":"RD-17D4A / Sturz – Bewusstseinstrübung / ALS gelb","patient":"66J, weiblich","melder":"Passant","eindruck":"Pat. am Parkplatz am Boden, offensichtlich gestürzt","abcde":{"a":"Frei","b":"Keine Atmung","c":"Kein Puls","d":"Keine Reaktion, Pupillen weit","e":"Keine Verletzungen sichtbar"},"sample":{"s":"-","a":"-","m":"-","p":"-","l":"-","e":"Passant fand Pat. mit Beinen unter Auto bei offener Fahrertüre"},"vitals":{"af":"0","spo2":"-","etco2":"17 mmHg","hf":"0","bd":"-","rekap":">3 sek","bz":"135 mg/dl","ekg":"Kammerflimmern","temp":"36,4°C"},"steps":[{"prompt":"Pat. am Boden, Beine ragten unter Auto hervor. Keine Reaktion, keine Atmung. Was zuerst?","options":["Unfallhergang klären","Pat. untersuchen auf Verletzungen","CPR + Defi anschließen + NAH nachfordern","HWS stabilisieren"],"correct":2,"feedback":"Keine Reaktion + keine Atmung = CPR starten! Defi anschließen, NAH nachfordern. Unfallhergang kann parallel durch P3/Passant geklärt werden."},{"prompt":"Defi zeigt Kammerflimmern. Dein Vorgehen?","options":["CPR 2 Min dann Rhythmuscheck","SOFORT Schock abgeben, dann CPR 2 Min","Adrenalin zuerst","Amiodaron zuerst"],"correct":1,"feedback":"VF/pulslose VT = schockbar → Schock abgeben! Danach sofort CPR 2 Minuten. Beim schockbaren Rhythmus: Adrenalin und Amiodaron erst nach dem 3. Schock!"},{"prompt":"Nach dem 3. Schock: VF besteht weiter. Welche Medikamente JETZT?","options":["Nur Adrenalin 1mg","Adrenalin 1mg + Amiodaron 300mg","Nur Amiodaron 300mg","Atropin 3mg"],"correct":1,"feedback":"Nach 3. Schock bei persistierendem VF: Adrenalin 1mg i.v. (dann alle 3-5 Min) UND Amiodaron 300mg i.v. (nicht verdünnen! = 6ml = 2 Ampullen). Nach 5. Schock: weitere 150mg Amiodaron."},{"prompt":"Amiodaron 300mg – wie bereitest du es vor?","options":["300mg in 100ml NaCl auflösen","Unverdünnt: 6ml = 2 Ampullen à 150mg/3ml","1 Ampulle reicht (150mg)","Mit Glucose-Lösung verdünnen"],"correct":1,"feedback":"Amiodaron 300mg = 6ml = 2 Ampullen à 150mg/3ml. NICHT verdünnen bei CPR! Maximaldosis: 450mg gesamt (300mg + 150mg)."},{"prompt":"ROSC! Puls tastbar, SpO₂ steigt. Was sind deine sofortigen Maßnahmen?","options":["CPR sofort stoppen und warten","ABCDE, SpO₂ 94-98%, 12-Kanal-EKG, Temperaturkontrolle","Extubieren","Sofort transportieren"],"correct":1,"feedback":"Nach ROSC: ABCDE-Schema! SpO₂ 94-98% (keine Hyperoxie!), CO₂ 35-45 mmHg, 12-Kanal-EKG (Vorsicht: ROSC-EKG hat geringe Aussagekraft), Temperatur 32-36°C anstreben, Ursache suchen."}]},{"id":8,"title":"Kälteproblem – Hypothermie (SCHWER!)","alarm":"RD-20D1C / Kälteproblem / ALS gelb","patient":"84J, weiblich","melder":"Sohn/Tochter","eindruck":"Mutter im Hof liegend gefunden, 06:00 morgens, 3°C","abcde":{"a":"Frei","b":"Minimale Brustkorbhebung","c":"Zentraler Puls tastbar, schwach","d":"Bewusstlos","e":"Keine Verletzungen"},"sample":{"s":"-","a":"keine bekannt","m":"Concor, Dominal, Metformin","p":"Herzinsuffizienz, Durchschlafstörungen, Diab. Typ II","l":"-","e":"unbekannt"},"vitals":{"af":"5","spo2":"80%","etco2":"61 mmHg initial","hf":"170","bd":"50/30","rekap":">6 sek","bz":"290 mg/dl","ekg":"PEA","temp":"30,2°C"},"steps":[{"prompt":"84J Frau, im Freien bei 3°C gefunden, 06:00 morgens. Sohn sagt sie reagierte noch. Was ist dein erster Verdacht?","options":["Schlaganfall","Schwere Hypothermie","Hypoglykämie","Sturz"],"correct":1,"feedback":"Im Freien bei Kälte + Bewusstlosigkeit → Hypothermie! Temp. 30,2°C = schwere Hypothermie. CAVE: Bei Hypothermie andere Vitalparameter interpretieren!"},{"prompt":"Temp 30,2°C, HF 170, BD 50/30, SpO₂ 80%. Minimale Atmung vorhanden. CPR starten oder nicht?","options":["Ja sofort CPR","Nein, Puls ist noch da – erst ABCDE","Ja, aber nur Beatmung","10-für-10 und Team besprechen"],"correct":1,"feedback":"Pat. hat (noch) Puls! Bei Hypothermie Puls bis 60 Sek. tasten! AF 5 + SpO₂ 80% → assistierte Beatmung/O₂. BD 50/30 → Volumen. Aber: Schnell CPR-bereit sein, da Verschlechterung wahrscheinlich!"},{"prompt":"Patient verschlechtert sich – PEA am Monitor, kein Puls mehr. Was ist bei Hypothermie-CPR anders?","options":["Alles gleich wie normal","Medikamente erst ab Kerntemp >30°C, Defi max. 3 Versuche unter 30°C","Keine CPR unter 30°C","Doppelte Medikamentendosis"],"correct":1,"feedback":"Bei Kerntemp <30°C: Max. 3 Defiversuche. Medikamentenintervall verdoppeln oder Gabe erst ab >30°C. WICHTIG: 'Nobody is dead until warm and dead!' – CPR fortsetzen!"},{"prompt":"BZ 290 mg/dl + Metformin-Einnahme. Was musst du bei den 4H bedenken?","options":["BZ ist egal bei CPR","Hypoglykämie ausschließen","Hyperkaliämie möglich (Metformin + Niereninsuffizienz bei Hypothermie)","Nur Hypothermie behandeln"],"correct":2,"feedback":"Metformin + Hypothermie → Laktatazidose möglich → Hyperkaliämie! BZ 290 = Hyperglykämie (Stressreaktion oder entgleister Diabetes). Alle 4H systematisch: Hypoxie (ja!), Hypovolämie, Hyper-K (möglich!), Hypothermie (ja!)."}]},{"id":10,"title":"Allergie – Anaphylaxie","alarm":"RD-2D2 / Allergie / ALS gelb","patient":"42J, weiblich","melder":"Gatte/Gattin","eindruck":"Bienenstich am Hals, schwere Atemnot, droht zusammenzubrechen","abcde":{"a":"Keine Verlegung sichtbar","b":"Keine Atmung (bei Eintreffen)","c":"Kein Puls","d":"Keine Reaktion","e":"Keine Verletzungen"},"sample":{"s":"-","a":"BIENEN!","m":"Notfallpen (Epi-Pen)","p":"keine Vorerkrankungen","l":"vor 1h gegessen","e":"unbekannt"},"vitals":{"af":"0","spo2":"80%","etco2":"13 mmHg","hf":"0","bd":"-","rekap":">3 sek","bz":"100 mg/dl","ekg":"-","temp":"36,1°C"},"steps":[{"prompt":"Gatte meldet: Bienenstich, schwere Atemnot. Bei Eintreffen: keine Reaktion, keine Atmung. Was tust du?","options":["Epi-Pen suchen und verabreichen","CPR starten + Defi + NAH nachfordern","Antihistaminikum geben","Erst Atemweg sichern"],"correct":1,"feedback":"Keine Reaktion + keine Atmung = Kreislaufstillstand! Sofort CPR + Defi. Ursache ist klar: anaphylaktischer Schock → aber ZUERST CPR, Medikamente im Rahmen des ALS-Algorithmus!"},{"prompt":"CPR läuft. Gatte sagt Pat. hat bekannte Bienenallergie und einen Notfallpen. Was bei den 4H/HITS?","options":["Nur Intoxikation relevant","Anaphylaxie → Hypoxie (Atemwegsschwellung) + Hypovolämie (Vasodilatation)","Hypothermie prüfen","Spannungspneumothorax"],"correct":1,"feedback":"Anaphylaxie führt zu: Hypoxie (Larynxödem, Bronchospasmus) + Hypovolämie (massive Vasodilatation) + ggf. Herzbeuteltamponade. Adrenalin ist DAS Medikament – kommt ohnehin im ALS-Algorithmus!"},{"prompt":"Fremdanamnese mit Gatten: Bekannte Bienenallergie, Notfallpen vorhanden, keine Vorerkrankungen. Was kommunizierst du dem NA bei Übergabe?","options":["Nur 'Bienenstich und CPR'","V.a. anaphylaktischer Schock nach Bienenstich, CPR seit X Min, Maßnahmen, SAMPLE, reversible Ursache besprochen","Frage ob Adrenalin-Pen gegeben werden soll","Ist Sache des NA"],"correct":1,"feedback":"Strukturierte Übergabe: V.a. anaphylaktischer Schock (Hymenopterenstich), CPR seit X Min, Rhythmus, Maßnahmen (Adrenalin im ALS-Algo), SAMPLE vollständig, 4H/HITS besprochen."}]},{"id":3,"title":"Hypoglykämie → Kreislaufstillstand","alarm":"RD-13C1 / BZ-Entgleisung / ALS gelb","patient":"74J, männlich","melder":"Bekannte","eindruck":"Pat. am Boden, komisch, BZ-Messgerät dabei","abcde":{"a":"Frei","b":"Schnarchende Atmung","c":"Zentraler Puls tastbar, kaltschweißig","d":"Bewusstlos","e":"Keine Verletzungen"},"sample":{"s":"keine","a":"keine bekannt","m":"Insulinpen, Enalapril, Concor","p":"Diabetes Typ I","l":"nicht bekannt","e":"Bekannte besuchte ihn, gab Löffel Honig, dann kollabiert"},"vitals":{"af":"8","spo2":"87%","etco2":"-","hf":"80","bd":"160/90","rekap":">3 sek","bz":"28 mg/dl","ekg":"Sinusrhythmus","temp":"35,8°C"},"steps":[{"prompt":"Pat. bewusstlos, schnarchende Atmung, kaltschweißig, Puls vorhanden. ABCDE – was zuerst?","options":["Sofort CPR","A: Atemweg freimachen (Esmarch), B: O₂, BZ messen!","Infusion mit Glucose","Stabile Seitenlage und warten"],"correct":1,"feedback":"Puls vorhanden → KEINE CPR! ABCDE: A=Atemweg freimachen (schnarchende Atmung!), B=O₂ geben, C=Monitoring. Und GANZ WICHTIG: BZ messen! Insulin + kaltschweißig = V.a. Hypoglykämie!"},{"prompt":"BZ = 28 mg/dl! Schwere Hypoglykämie. Pat. ist bewusstlos. Welche Maßnahme?","options":["Oralen Traubenzucker geben","Glucose i.v. (als NFS)","Honig in den Mund schmieren","Warten bis Notarzt kommt"],"correct":1,"feedback":"Bewusstlos = NICHTS oral! Glucose i.v. als NFS-Maßnahme. Pat. hat Diabetes Typ I + Insulinpen → klassische schwere Hypoglykämie."},{"prompt":"CAVE: Nach 1 Minute verschlechtert sich Pat. – keine Atmung mehr, kein Puls. Was jetzt?","options":["Weiter Glucose geben","CPR starten + ALS-Algorithmus","Noch einmal Puls tasten und warten","Beatmen ohne HDM"],"correct":1,"feedback":"Kreislaufstillstand! Sofort CPR + ALS-Algorithmus. NAH nachfordern. Reversible Ursache: Hypoglykämie (4H: metabolische Störung). Glucose weiter i.v., aber CPR hat Priorität!"}]}];
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<script>
+// Inline scenario data
+window.SCENARIOS=[{"id":1,"title":"Atemnot – Kaltschweißig","alarm":"RD-6D4 / Atembeschwerden-Kaltschweißig / ALS gelb","patient":"76J, männlich","melder":"Nachbar","eindruck":"Pat. liegt im Wohnzimmer, reagiert nicht, schnappt nach Luft","abcde":{"a":"Keine Verlegung sichtbar","b":"Keine suffiziente Atmung","c":"Kein Puls, Zyanose Lippen/Finger","d":"Keine Reaktion, Pupillen mittel-weit","e":"Keine Verletzungen"},"sample":{"s":"keine","a":"keine bekannt","m":"Metformin, Enalapril, Concor","p":"Diab. Typ II, Hypertonie, VHF","l":"nicht bekannt","e":"Nachbar fand Pat., lebt allein"},"vitals":{"af":"0","spo2":"64%","etco2":"12 mmHg","hf":"0","bd":"nicht messbar","rekap":">3 sek","bz":"110 mg/dl","ekg":"Asystolie","temp":"36°C"},"steps":[{"prompt":"Du triffst ein. Erster Eindruck – was machst du?","options":["Nachbarn befragen","Bewusstsein & Atmung prüfen, Hilfe holen","Sauerstoff geben","Blutdruck messen"],"correct":1,"feedback":"Bewusstsein prüfen (Ansprechen + Schmerzreiz) → keine Reaktion. Atmung prüfen → Schnappatmung = KEINE normale Atmung → Hilfe holen (NAH/NEF), CPR starten!"},{"prompt":"Patient reagiert nicht, Schnappatmung. Dein nächster Schritt?","options":["Stabile Seitenlage","CPR starten + Defibrillator anschließen","Erst Atemweg sichern mit LTS-D","Infusion vorbereiten"],"correct":1,"feedback":"CPR sofort starten! Defibrillator anschließen. Aufgabenverteilung: Du als TL → Kopf, P2 → Zugang, P3 → HDM."},{"prompt":"Defi zeigt Asystolie. Welches Vorgehen?","options":["Schock abgeben","CPR 2 Min + Adrenalin 1mg sofort i.v.","Amiodaron 300mg i.v.","Rhythmus nochmal analysieren"],"correct":1,"feedback":"Nicht schockbar (Asystolie/PEA) → CPR fortsetzen 2 Min. Adrenalin 1mg i.v. so schnell wie möglich, danach alle 3-5 Min. KEIN Amiodaron bei nicht schockbarem Rhythmus!"},{"prompt":"Während der CPR: Welche reversiblen Ursachen (4H/HITS) besprichst du mit dem Team?","options":["Nur Hypothermie","Nur Thrombose wegen VHF","Hypoxie, Hypovolämie, Hypo-/Hyperkaliämie, Hypothermie + Herzbeuteltamponade, Intoxikation, Thrombose, Spannungspneumothorax","Fixierungsfehler vermeiden"],"correct":2,"feedback":"Alle 4H und HITS systematisch durchgehen! Bei diesem Pat.: Thromboembolie (VHF!), Hypoxie, Hyperkaliämie (Metformin/Diabetes) besonders relevant. 10-für-10 Prinzip nutzen!"},{"prompt":"Fremdanamnese: Pat. hat Diabetes, VHF, Hypertonie. Medikamente: Metformin, Enalapril, Concor. Was ist die wahrscheinlichste Ursache?","options":["Hypoglykämie","Thromboembolie (Myokardinfarkt/Lungenembolie)","Spannungspneumothorax","Hypothermie"],"correct":1,"feedback":"VHF + kardiale Risikofaktoren → Thromboembolie (MI oder LE) ist die wahrscheinlichste Ursache. Bei V.a. Lungenembolie: Thrombolyse erwägen, dann CPR 60-90 Min fortsetzen!"}]},{"id":4,"title":"Kreislaufstillstand – Brustschmerzen","alarm":"RD-9E1 / Kreislaufstillstand / ALS rot – NEF mitalarmiert","patient":"84J, männlich","melder":"Sohn/Tochter","eindruck":"Vater zusammengebrochen, griff sich auf Brust","abcde":{"a":"Frei","b":"Keine Atmung","c":"Kein Puls","d":"Keine Reaktion, Pupillen weit","e":"Keine Verletzungen"},"sample":{"s":"keine","a":"keine bekannt","m":"Seroquel (Beruhigung)","p":"leichte Demenz","l":"nicht bekannt","e":"War den ganzen Tag anders, griff sich auf Brust"},"vitals":{"af":"0","spo2":"-","etco2":"10 mmHg initial","hf":"0","bd":"-","rekap":">3 sek","bz":"118 mg/dl","ekg":"Asystolie","temp":"35,8°C"},"steps":[{"prompt":"84J Mann, leblos am Boden, Sohn sagt er griff sich auf Brust. Deine ersten Maßnahmen?","options":["Erst vollständige Anamnese beim Sohn","CPR starten, Defi anschließen, NAH über laufende CPR informieren","Sauerstoff per Maske","12-Kanal-EKG schreiben"],"correct":1,"feedback":"Sofort CPR + Defi! NAH ist bereits alarmiert (ALS rot) → Information über laufende CPR geben. Keine Zeit für ausführliche Anamnese VOR CPR-Start!"},{"prompt":"Defi: Asystolie. CPR läuft. Atemwegssicherung – was wählst du?","options":["Guedel-Tubus reicht","LTS-D einlegen","Endotracheale Intubation","Nur Beutel-Maske"],"correct":1,"feedback":"Als NFS ohne NKI: LTS-D! Cuffdruck 50-60 cm H₂O. Danach Beatmung evaluieren (Kapnografie!). Bei gesichertem Atemweg: durchgehende HDM + Beatmung 10/min."},{"prompt":"LTS-D liegt. Kapnografie zeigt etCO₂ 10 mmHg, steigend. Was sagt dir der Wert?","options":["Alles bestens","Sehr niedrig – HDM-Qualität verbessern","Hyperventilation – langsamer beatmen","Tubus liegt falsch"],"correct":1,"feedback":"etCO₂ 10 mmHg ist sehr niedrig. Exzellente HDM → 15-18 mmHg. HDM-Qualität optimieren: Drucktiefe 5-6cm, Frequenz 100-120/min, vollständige Entlastung!"},{"prompt":"Team-Timeout (10-für-10): 4H und HITS besprechen. Was ist bei diesem Patienten am wahrscheinlichsten?","options":["Hypothermie (35,8°C ist grenzwertig)","Thromboembolie (Brustschmerzen → V.a. MI)","Spannungspneumothorax","Intoxikation (Seroquel)"],"correct":1,"feedback":"Brustschmerzen vor Kollaps → V.a. Myokardinfarkt (Thrombose koronar). 4H: Hypoxie behandeln wir bereits. HITS: Thrombose wahrscheinlichste Ursache. Bei ROSC → sofort 12-Kanal-EKG!"},{"prompt":"NEF trifft ein. Wie übergibst du?","options":["Nur sagen 'wir reanimieren'","ABCDE-strukturierte Übergabe mit Verdachtsdiagnose","Erst CPR stoppen dann reden","Dem Notarzt alles übergeben und zurücktreten"],"correct":1,"feedback":"Strukturierte Übergabe nach Priorität: Situation (CPR seit X Min), ABCDE-Befunde, Maßnahmen, Medikamente, Rhythmus, Verdachtsdiagnose (V.a. MI), SAMPLE. CPR dabei NICHT unterbrechen!"}]},{"id":6,"title":"Sturz – Kammerflimmern","alarm":"RD-17D4A / Sturz – Bewusstseinstrübung / ALS gelb","patient":"66J, weiblich","melder":"Passant","eindruck":"Pat. am Parkplatz am Boden, offensichtlich gestürzt","abcde":{"a":"Frei","b":"Keine Atmung","c":"Kein Puls","d":"Keine Reaktion, Pupillen weit","e":"Keine Verletzungen sichtbar"},"sample":{"s":"-","a":"-","m":"-","p":"-","l":"-","e":"Passant fand Pat. mit Beinen unter Auto bei offener Fahrertüre"},"vitals":{"af":"0","spo2":"-","etco2":"17 mmHg","hf":"0","bd":"-","rekap":">3 sek","bz":"135 mg/dl","ekg":"Kammerflimmern","temp":"36,4°C"},"steps":[{"prompt":"Pat. am Boden, Beine ragten unter Auto hervor. Keine Reaktion, keine Atmung. Was zuerst?","options":["Unfallhergang klären","Pat. untersuchen auf Verletzungen","CPR + Defi anschließen + NAH nachfordern","HWS stabilisieren"],"correct":2,"feedback":"Keine Reaktion + keine Atmung = CPR starten! Defi anschließen, NAH nachfordern. Unfallhergang kann parallel durch P3/Passant geklärt werden."},{"prompt":"Defi zeigt Kammerflimmern. Dein Vorgehen?","options":["CPR 2 Min dann Rhythmuscheck","SOFORT Schock abgeben, dann CPR 2 Min","Adrenalin zuerst","Amiodaron zuerst"],"correct":1,"feedback":"VF/pulslose VT = schockbar → Schock abgeben! Danach sofort CPR 2 Minuten. Beim schockbaren Rhythmus: Adrenalin und Amiodaron erst nach dem 3. Schock!"},{"prompt":"Nach dem 3. Schock: VF besteht weiter. Welche Medikamente JETZT?","options":["Nur Adrenalin 1mg","Adrenalin 1mg + Amiodaron 300mg","Nur Amiodaron 300mg","Atropin 3mg"],"correct":1,"feedback":"Nach 3. Schock bei persistierendem VF: Adrenalin 1mg i.v. (dann alle 3-5 Min) UND Amiodaron 300mg i.v. (nicht verdünnen! = 6ml = 2 Ampullen). Nach 5. Schock: weitere 150mg Amiodaron."},{"prompt":"Amiodaron 300mg – wie bereitest du es vor?","options":["300mg in 100ml NaCl auflösen","Unverdünnt: 6ml = 2 Ampullen à 150mg/3ml","1 Ampulle reicht (150mg)","Mit Glucose-Lösung verdünnen"],"correct":1,"feedback":"Amiodaron 300mg = 6ml = 2 Ampullen à 150mg/3ml. NICHT verdünnen bei CPR! Maximaldosis: 450mg gesamt (300mg + 150mg)."},{"prompt":"ROSC! Puls tastbar, SpO₂ steigt. Was sind deine sofortigen Maßnahmen?","options":["CPR sofort stoppen und warten","ABCDE, SpO₂ 94-98%, 12-Kanal-EKG, Temperaturkontrolle","Extubieren","Sofort transportieren"],"correct":1,"feedback":"Nach ROSC: ABCDE-Schema! SpO₂ 94-98% (keine Hyperoxie!), CO₂ 35-45 mmHg, 12-Kanal-EKG (Vorsicht: ROSC-EKG hat geringe Aussagekraft), Temperatur 32-36°C anstreben, Ursache suchen."}]},{"id":8,"title":"Kälteproblem – Hypothermie (SCHWER!)","alarm":"RD-20D1C / Kälteproblem / ALS gelb","patient":"84J, weiblich","melder":"Sohn/Tochter","eindruck":"Mutter im Hof liegend gefunden, 06:00 morgens, 3°C","abcde":{"a":"Frei","b":"Minimale Brustkorbhebung","c":"Zentraler Puls tastbar, schwach","d":"Bewusstlos","e":"Keine Verletzungen"},"sample":{"s":"-","a":"keine bekannt","m":"Concor, Dominal, Metformin","p":"Herzinsuffizienz, Durchschlafstörungen, Diab. Typ II","l":"-","e":"unbekannt"},"vitals":{"af":"5","spo2":"80%","etco2":"61 mmHg initial","hf":"170","bd":"50/30","rekap":">6 sek","bz":"290 mg/dl","ekg":"PEA","temp":"30,2°C"},"steps":[{"prompt":"84J Frau, im Freien bei 3°C gefunden, 06:00 morgens. Sohn sagt sie reagierte noch. Was ist dein erster Verdacht?","options":["Schlaganfall","Schwere Hypothermie","Hypoglykämie","Sturz"],"correct":1,"feedback":"Im Freien bei Kälte + Bewusstlosigkeit → Hypothermie! Temp. 30,2°C = schwere Hypothermie. CAVE: Bei Hypothermie andere Vitalparameter interpretieren!"},{"prompt":"Temp 30,2°C, HF 170, BD 50/30, SpO₂ 80%. Minimale Atmung vorhanden. CPR starten oder nicht?","options":["Ja sofort CPR","Nein, Puls ist noch da – erst ABCDE","Ja, aber nur Beatmung","10-für-10 und Team besprechen"],"correct":1,"feedback":"Pat. hat (noch) Puls! Bei Hypothermie Puls bis 60 Sek. tasten! AF 5 + SpO₂ 80% → assistierte Beatmung/O₂. BD 50/30 → Volumen. Aber: Schnell CPR-bereit sein, da Verschlechterung wahrscheinlich!"},{"prompt":"Patient verschlechtert sich – PEA am Monitor, kein Puls mehr. Was ist bei Hypothermie-CPR anders?","options":["Alles gleich wie normal","Medikamente erst ab Kerntemp >30°C, Defi max. 3 Versuche unter 30°C","Keine CPR unter 30°C","Doppelte Medikamentendosis"],"correct":1,"feedback":"Bei Kerntemp <30°C: Max. 3 Defiversuche. Medikamentenintervall verdoppeln oder Gabe erst ab >30°C. WICHTIG: 'Nobody is dead until warm and dead!' – CPR fortsetzen!"},{"prompt":"BZ 290 mg/dl + Metformin-Einnahme. Was musst du bei den 4H bedenken?","options":["BZ ist egal bei CPR","Hypoglykämie ausschließen","Hyperkaliämie möglich (Metformin + Niereninsuffizienz bei Hypothermie)","Nur Hypothermie behandeln"],"correct":2,"feedback":"Metformin + Hypothermie → Laktatazidose möglich → Hyperkaliämie! BZ 290 = Hyperglykämie (Stressreaktion oder entgleister Diabetes). Alle 4H systematisch: Hypoxie (ja!), Hypovolämie, Hyper-K (möglich!), Hypothermie (ja!)."}]},{"id":10,"title":"Allergie – Anaphylaxie","alarm":"RD-2D2 / Allergie / ALS gelb","patient":"42J, weiblich","melder":"Gatte/Gattin","eindruck":"Bienenstich am Hals, schwere Atemnot, droht zusammenzubrechen","abcde":{"a":"Keine Verlegung sichtbar","b":"Keine Atmung (bei Eintreffen)","c":"Kein Puls","d":"Keine Reaktion","e":"Keine Verletzungen"},"sample":{"s":"-","a":"BIENEN!","m":"Notfallpen (Epi-Pen)","p":"keine Vorerkrankungen","l":"vor 1h gegessen","e":"unbekannt"},"vitals":{"af":"0","spo2":"80%","etco2":"13 mmHg","hf":"0","bd":"-","rekap":">3 sek","bz":"100 mg/dl","ekg":"-","temp":"36,1°C"},"steps":[{"prompt":"Gatte meldet: Bienenstich, schwere Atemnot. Bei Eintreffen: keine Reaktion, keine Atmung. Was tust du?","options":["Epi-Pen suchen und verabreichen","CPR starten + Defi + NAH nachfordern","Antihistaminikum geben","Erst Atemweg sichern"],"correct":1,"feedback":"Keine Reaktion + keine Atmung = Kreislaufstillstand! Sofort CPR + Defi. Ursache ist klar: anaphylaktischer Schock → aber ZUERST CPR, Medikamente im Rahmen des ALS-Algorithmus!"},{"prompt":"CPR läuft. Gatte sagt Pat. hat bekannte Bienenallergie und einen Notfallpen. Was bei den 4H/HITS?","options":["Nur Intoxikation relevant","Anaphylaxie → Hypoxie (Atemwegsschwellung) + Hypovolämie (Vasodilatation)","Hypothermie prüfen","Spannungspneumothorax"],"correct":1,"feedback":"Anaphylaxie führt zu: Hypoxie (Larynxödem, Bronchospasmus) + Hypovolämie (massive Vasodilatation) + ggf. Herzbeuteltamponade. Adrenalin ist DAS Medikament – kommt ohnehin im ALS-Algorithmus!"},{"prompt":"Fremdanamnese mit Gatten: Bekannte Bienenallergie, Notfallpen vorhanden, keine Vorerkrankungen. Was kommunizierst du dem NA bei Übergabe?","options":["Nur 'Bienenstich und CPR'","V.a. anaphylaktischer Schock nach Bienenstich, CPR seit X Min, Maßnahmen, SAMPLE, reversible Ursache besprochen","Frage ob Adrenalin-Pen gegeben werden soll","Ist Sache des NA"],"correct":1,"feedback":"Strukturierte Übergabe: V.a. anaphylaktischer Schock (Hymenopterenstich), CPR seit X Min, Rhythmus, Maßnahmen (Adrenalin im ALS-Algo), SAMPLE vollständig, 4H/HITS besprochen."}]},{"id":3,"title":"Hypoglykämie → Kreislaufstillstand","alarm":"RD-13C1 / BZ-Entgleisung / ALS gelb","patient":"74J, männlich","melder":"Bekannte","eindruck":"Pat. am Boden, komisch, BZ-Messgerät dabei","abcde":{"a":"Frei","b":"Schnarchende Atmung","c":"Zentraler Puls tastbar, kaltschweißig","d":"Bewusstlos","e":"Keine Verletzungen"},"sample":{"s":"keine","a":"keine bekannt","m":"Insulinpen, Enalapril, Concor","p":"Diabetes Typ I","l":"nicht bekannt","e":"Bekannte besuchte ihn, gab Löffel Honig, dann kollabiert"},"vitals":{"af":"8","spo2":"87%","etco2":"-","hf":"80","bd":"160/90","rekap":">3 sek","bz":"28 mg/dl","ekg":"Sinusrhythmus","temp":"35,8°C"},"steps":[{"prompt":"Pat. bewusstlos, schnarchende Atmung, kaltschweißig, Puls vorhanden. ABCDE – was zuerst?","options":["Sofort CPR","A: Atemweg freimachen (Esmarch), B: O₂, BZ messen!","Infusion mit Glucose","Stabile Seitenlage und warten"],"correct":1,"feedback":"Puls vorhanden → KEINE CPR! ABCDE: A=Atemweg freimachen (schnarchende Atmung!), B=O₂ geben, C=Monitoring. Und GANZ WICHTIG: BZ messen! Insulin + kaltschweißig = V.a. Hypoglykämie!"},{"prompt":"BZ = 28 mg/dl! Schwere Hypoglykämie. Pat. ist bewusstlos. Welche Maßnahme?","options":["Oralen Traubenzucker geben","Glucose i.v. (als NFS)","Honig in den Mund schmieren","Warten bis Notarzt kommt"],"correct":1,"feedback":"Bewusstlos = NICHTS oral! Glucose i.v. als NFS-Maßnahme. Pat. hat Diabetes Typ I + Insulinpen → klassische schwere Hypoglykämie."},{"prompt":"CAVE: Nach 1 Minute verschlechtert sich Pat. – keine Atmung mehr, kein Puls. Was jetzt?","options":["Weiter Glucose geben","CPR starten + ALS-Algorithmus","Noch einmal Puls tasten und warten","Beatmen ohne HDM"],"correct":1,"feedback":"Kreislaufstillstand! Sofort CPR + ALS-Algorithmus. NAH nachfordern. Reversible Ursache: Hypoglykämie (4H: metabolische Störung). Glucose weiter i.v., aber CPR hat Priorität!"}]}];
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script>
+const{useState,useEffect}=React;
+const h=React.createElement;
+const ABCDE=[
+{letter:"A",title:"Airway",q:"Atemwege frei?",action:"Frei machen!",assess:["Atemwege verlegt?","Verlegung sichtbar?","Atemgeräusche?"],all:["Esmarch-Handgriff","Kopf überstrecken","Rückenschläge/Oberbauchkompr.","Mundhöhle ausräumen","Magill-Zange","Absaugen","Stabile Seitenlage","Wendl-Tubus"],nfs:["Laryngoskopie (ab NKI)"],c:"#E74C3C"},
+{letter:"B",title:"Breathing",q:"Atmung normal?",action:"Lagerung, O₂",assess:["Frequenz (>10, <30)","Atemtiefe, Brustkorbbewegung","Geräusche, Atemhilfsmuskulatur","Hautfarbe (rosig/zyanotisch)","SpO₂ >94%"],all:["O₂-Gabe","Oberkörper hoch","Kleidung öffnen","Frischluft","AKS: Beutel-Maske 30:2","AKS: Guedel/Larynxtubus"],nfs:["Inhalative Medikamente","Assistierte Beatmung","NIV (ab NKI)","AKS: ET Intubation (ab NKI)"],c:"#3498DB"},
+{letter:"C",title:"Circulation",q:"Kreislauf ok?",action:"Blutstillung, Lagerung",assess:["Puls: Frequenz, Rhythmus","Hautfarbe, Temperatur, Schweiß","Rekapzeit (<2 sek)","Blutungen?","4 Blutungsräume (Thorax, Abdomen, Becken, Beine)"],all:["Blutstillung!","Beine erhöht?","Wärmeerhalt"],nfs:["Kreislauf-Medikamente","Volumentherapie (ab NKA)","EKG-Diagnostik"],c:"#E67E22"},
+{letter:"D",title:"Disabilities",q:"Neurologie?",action:"Lagerung, Immobilisation",assess:["ZOPS (Zeit, Ort, Person, Situation)","AVPU (Alert, Voice, Pain, Unresponsive)","FAST (Schlaganfall)","Pupillen","Motorik/Sensibilität"],all:["Ganzkörperimmob. bei Trauma","Einsatztaktik (ZielKH)"],nfs:["Medikamente (Glucose, Benzos)"],c:"#9B59B6"},
+{letter:"E",title:"Exposure",q:"Entkleiden, Entscheiden",action:"Transport, Reevaluation",assess:["Verletzungsmuster?","10-für-10","SAMPLE-Anamnese"],all:["Zielgerichtete Untersuchung","Schienung","SAMPLE","Apparative Untersuchung"],nfs:["Keine spezif. Unterschiede"],c:"#1ABC9C"}
+];
+const H4=[
+{name:"Hypoxie",detail:"100% O₂, Atemweg sichern, Thorax hebt sich?",icon:"💨"},
+{name:"Hypovolämie",detail:"PEA bei Blutverlust → Volumen + chir. Blutstillung",icon:"🩸"},
+{name:"Hyper-/Hypokaliämie",detail:"Metabolische Störungen, Labor, Calcium/Bikarbonat",icon:"⚗️"},
+{name:"Hypo-/Hyperthermie",detail:"Ertrinken, Kälte → Nobody is dead until warm and dead!",icon:"🌡️"}
+];
+const HITS=[
+{name:"Herzbeuteltamponade",detail:"Gestaute Halsvenen, Ultraschall → Perikardpunktion",icon:"❤️"},
+{name:"Intoxikation",detail:"Anamnese! Antidote wenn möglich, sonst symptomatisch",icon:"☠️"},
+{name:"Thromboembolie",detail:"LE/MI → Thrombolyse erwägen, CPR 60-90 Min!",icon:"🫁"},
+{name:"Spannungspneumothorax",detail:"Klinische Diagnose → Nadeldekompression → Drainage",icon:"💉"}
+];
+const MEDS=[
+{name:"Adrenalin 1:10.000",trade:"L-Adrenalin®",dose:"1mg i.v.",schockbar:"Nach 3. Schock, dann alle 3-5 Min",nichtschockbar:"SOFORT, dann alle 3-5 Min",prep:"10ml Fertigspritze",maxdose:"keine Maximaldosis",color:"#ef4444"},
+{name:"Amiodaron",trade:"Sedacoron®",dose:"300mg / 150mg",schockbar:"300mg nach 3. Schock, 150mg nach 5. Schock",nichtschockbar:"KEINE Anwendung!",prep:"300mg = 6ml (2 Amp. à 3ml)\n150mg = 3ml (1 Amp.)\nNICHT verdünnen!",maxdose:"450mg gesamt",color:"#f59e0b"},
+{name:"Kristalloide",trade:"Elomel / NaCl 0,9%",dose:"500-1000ml",schockbar:"Bei V.a. Hypovolämie",nichtschockbar:"Bei V.a. Hypovolämie",prep:"Druckinfusion\nKeine Glucose-Lösungen!",maxdose:"Nach Wirkung titrieren",color:"#3b82f6"},
+{name:"Thrombolytika",trade:"Metalyse®",dose:"nach Gewicht",schockbar:"Nur bei V.a. LE",nichtschockbar:"Nur bei V.a. LE",prep:"CPR 60-90 Min fortsetzen!",maxdose:"Einzelgabe",color:"#8b5cf6"}
+];
+const CRM=[{n:1,t:"Kenne Deine Arbeitsumgebung"},{n:2,t:"Antizipiere und plane voraus"},{n:3,t:"Fordere Hilfe an – lieber früh als spät"},{n:4,t:"Übernimm Führung oder sei gutes Teammitglied"},{n:5,t:"Verteile die Arbeitsbelastung (10-für-10)"},{n:6,t:"Mobilisiere alle Ressourcen"},{n:7,t:"Kommuniziere sicher und effektiv"},{n:8,t:"Verwende alle vorhandenen Informationen"},{n:9,t:"Verhindere Fixierungsfehler"},{n:10,t:"Double Check!"},{n:11,t:"Verwende Merkhilfen, schlage nach"},{n:12,t:"Re-evaluiere immer wieder (10-für-10)"},{n:13,t:"Achte auf gute Teamarbeit"},{n:14,t:"Lenke Aufmerksamkeit bewusst"},{n:15,t:"Setze Prioritäten dynamisch"}];
+const QUIZ=[
+{q:"Erster Schritt bei Bewusstlosigkeit + keine Atmung?",o:["ABCDE starten","CPR + Defi","Medikamente","Atemweg sichern"],c:1,e:"Sofort CPR + Defi anschließen!"},
+{q:"VF/pVT am Defi – was tust du?",o:["CPR 2min","Schock dann CPR 2min","Adrenalin sofort","Amiodaron sofort"],c:1,e:"Schockbar → Schock, dann CPR 2 Min."},
+{q:"Adrenalin beim schockbaren Rhythmus – wann?",o:["Sofort","Nach 1. Defi","Nach 3. Defi","Nach ROSC"],c:2,e:"Nach 3. Defibrillation, dann alle 3-5 Min."},
+{q:"Amiodaron – wann und wieviel?",o:["Sofort 300mg","300mg nach 3. Defi + 150mg nach 5. Defi","Nur nach ROSC","Gar nicht"],c:1,e:"300mg nach 3. Defi, 150mg nach 5. Defi. Max 450mg."},
+{q:"PEA/Asystolie – Vorgehen?",o:["Schock versuchen","CPR + Adrenalin sofort","Amiodaron","Nur HDM"],c:1,e:"Nicht schockbar → CPR + Adrenalin sofort."},
+{q:"SpO₂-Ziel nach ROSC?",o:["100%","94-98%","88-92%",">99%"],c:1,e:"94-98%. Keine Hyperoxie!"},
+{q:"LTS-D Cuffdruck?",o:["20-30 cm H₂O","50-60 cm H₂O","80 cm H₂O","100 cm H₂O"],c:1,e:"LTS-D: 50-60. ET: 20-30 cm H₂O."},
+{q:"Tubustiefe Männer?",o:["18-19cm","20-21cm","22-23cm","24-25cm"],c:2,e:"Männer 22-23cm, Frauen 20-21cm."},
+{q:"Beatmungsfrequenz bei gesichertem Atemweg?",o:["30:2","10/min","15/min","20/min"],c:1,e:"10/min bei durchgehender HDM."},
+{q:"10-für-10 Prinzip?",o:["10min CPR 10min Pause","10 Sek Planung für 10 Min","10 Atemzüge","10 Personen"],c:1,e:"10 Sek Pause → Plan für nächste 10 Min."},
+{q:"Wer geht an Kopfposition?",o:["P3","P2","Teamleader (min. NFS)","Egal"],c:2,e:"TL → Kopf. P2 → Zugang. P3 → HDM."},
+{q:"4 große Blutungsräume?",o:["Kopf, Hals, Arme, Beine","Brustkorb, Bauch, Becken, Beine","Kopf, Brustkorb, Arme, Beine","Hals, Bauch, Becken, Arme"],c:1,e:"Brustkorb, Bauch, Becken, Beine."},
+{q:"Rekapillarisierungszeit normal?",o:["<1 sek","<2 sek","<5 sek","<10 sek"],c:1,e:"Normal: <2 Sekunden."},
+{q:"Hypokapnie – Lösung?",o:["BF erhöhen","BF verlangsamen","Mehr O₂","Weniger O₂"],c:1,e:"Hyperventilation → BF verlangsamen."},
+{q:"Amiodaron 300mg = wieviel ml?",o:["3ml (1 Amp)","6ml (2 Amp)","9ml (3 Amp)","12ml"],c:1,e:"300mg = 6ml = 2 Ampullen. Unverdünnt!"},
+{q:"Temperaturziel nach ROSC?",o:["34-35°C","32-36°C","36-37°C","37-38°C"],c:1,e:"32-36°C über ≥24h."},
+{q:"Was gehört NICHT zu den 4H?",o:["Hypoxie","Hypovolämie","Herzbeuteltamponade","Hypothermie"],c:2,e:"Herzbeuteltamponade = HITS!"},
+{q:"HITS – T steht für?",o:["Trauma","Thromboembolie","Temperatur","Tachykardie"],c:1,e:"H-I-T-S: Thromboembolie."},
+{q:"Thrombolyse bei LE – CPR wie lange?",o:["30 Min","45 Min","60-90 Min","120 Min"],c:2,e:"Bei Thrombolyse: CPR 60-90 Min!"},
+{q:"Hypothermie <30°C: Medikamente?",o:["Normal","Intervall verdoppeln / erst ab >30°C","Doppelte Dosis","Keine"],c:1,e:"Unter 30°C: Intervall verdoppeln."},
+{q:"Closed-Loop-Kommunikation?",o:["Nur TL redet","Anordnung → Wiederholung → Bestätigung","Alle reden gleichzeitig","Nur nach Einsatz"],c:1,e:"TL ordnet an → Empfänger wiederholt → Führt aus → Bestätigt."},
+{q:"Speak-Up bedeutet?",o:["TL gibt Befehle","Jeder darf Bedenken äußern","Nur NA darf","Nach Einsatz Feedback"],c:1,e:"ALLE dürfen Bedenken äußern!"},
+{q:"SAMPLE – S steht für?",o:["Situation","Symptome","Sauerstoff","Status"],c:1,e:"S=Symptome A=Allergien M=Medikamente P=Pat.Geschichte L=Letzte Mahlzeit E=Ereignis."},
+{q:"AVPU – P steht für?",o:["Pulse","Pain","Pressure","Position"],c:1,e:"Alert, Voice, Pain, Unresponsive."}
+];
+const TABS=["ABCDE","4H/HITS","Medis","ALS","CRM","Quiz","Szenarien","Check"];
+function TB({a,set}){return h('div',{style:{display:'flex',gap:'2px',background:'#1a1a2e',padding:'3px',borderRadius:'12px',marginBottom:'20px',flexWrap:'wrap',position:'sticky',top:0,zIndex:10}},TABS.map(function(t,i){return h('button',{key:t,onClick:function(){set(i)},style:{flex:'1 1 auto',minWidth:'56px',padding:'10px 4px',border:'none',borderRadius:'10px',background:a===i?'#dc2626':'transparent',color:a===i?'#fff':'#667',fontSize:'11px',fontWeight:a===i?700:500,transition:'all .2s',letterSpacing:'.3px'}},t)}))}
+function VA(){
+var x=useState(null),exp=x[0],sx=x[1];
+return h('div',null,h('h2',{style:{fontFamily:"'Playfair Display',serif",fontSize:'24px',color:'#fff',marginBottom:'6px'}},'ABCDE-Schema'),h('p',{style:{color:'#889',fontSize:'12px',marginBottom:'16px'}},'Vor ABCDE: Bewusstsein → Blutung → Immobilisation'),h('div',{style:{display:'flex',flexDirection:'column',gap:'10px'}},ABCDE.map(function(it,i){return h('div',{key:it.letter,onClick:function(){sx(exp===i?null:i)},style:{background:exp===i?'#16213e':'#0f1629',border:'2px solid '+(exp===i?it.c:'#1a1a3e'),borderRadius:'14px',padding:'16px',cursor:'pointer',transition:'.3s'}},h('div',{style:{display:'flex',alignItems:'center',gap:'14px'}},h('div',{style:{width:'48px',height:'48px',borderRadius:'12px',background:'linear-gradient(135deg,'+it.c+','+it.c+'88)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'22px',fontWeight:800,color:'#fff',flexShrink:0}},it.letter),h('div',{style:{flex:1}},h('div',{style:{color:'#f0f0f0',fontWeight:700,fontSize:'14px'}},it.title),h('div',{style:{color:it.c,fontSize:'11px',marginTop:'2px'}},it.q+' → '+it.action)),h('div',{style:{transform:exp===i?'rotate(180deg)':'',transition:'.3s',color:'#667'}},'▼')),exp===i?h('div',{style:{marginTop:'16px',animation:'fadeIn .3s'}},h('div',{style:{color:it.c,fontWeight:700,fontSize:'11px',marginBottom:'6px',textTransform:'uppercase',letterSpacing:'1px'}},'BEURTEILUNG'),it.assess.map(function(a,j){return h('div',{key:j,style:{color:'#b0bcc8',fontSize:'12px',padding:'3px 0 3px 14px',borderLeft:'2px solid '+it.c+'44'}},a)}),h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginTop:'12px'}},h('div',null,h('div',{style:{color:'#22c55e',fontWeight:700,fontSize:'10px',marginBottom:'6px',textTransform:'uppercase'}},'ALLE SAN'),it.all.map(function(m,j){return h('div',{key:j,style:{color:'#8a9baa',fontSize:'11px',lineHeight:1.6}},'• '+m)})),h('div',null,h('div',{style:{color:'#f59e0b',fontWeight:700,fontSize:'10px',marginBottom:'6px',textTransform:'uppercase'}},'NFS/NKI'),it.nfs.map(function(m,j){return h('div',{key:j,style:{color:'#8a9baa',fontSize:'11px',lineHeight:1.6}},'• '+m)})))):null)})))}
+function VH(){return h('div',null,h('h2',{style:{fontFamily:"'Playfair Display',serif",fontSize:'24px',color:'#fff',marginBottom:'16px'}},'4H und HITS'),h('p',{style:{color:'#889',fontSize:'12px',marginBottom:'16px'}},'Reversible Ursachen – IMMER systematisch durchgehen!'),h('div',{style:{color:'#ef4444',fontWeight:700,fontSize:'14px',marginBottom:'10px'}},'Die 4 H'),h('div',{style:{display:'flex',flexDirection:'column',gap:'8px',marginBottom:'24px'}},H4.map(function(x,i){return h('div',{key:i,style:{background:'#0f1629',border:'1px solid #1a1a3e',borderRadius:'12px',padding:'14px'}},h('div',{style:{display:'flex',alignItems:'center',gap:'12px'}},h('span',{style:{fontSize:'24px'}},x.icon),h('div',null,h('div',{style:{color:'#f0f0f0',fontWeight:700,fontSize:'14px'}},x.name),h('div',{style:{color:'#8899aa',fontSize:'12px',marginTop:'4px'}},x.detail))))})),h('div',{style:{color:'#f59e0b',fontWeight:700,fontSize:'14px',marginBottom:'10px'}},'Die HITS'),h('div',{style:{display:'flex',flexDirection:'column',gap:'8px'}},HITS.map(function(x,i){return h('div',{key:i,style:{background:'#0f1629',border:'1px solid #1a1a3e',borderRadius:'12px',padding:'14px'}},h('div',{style:{display:'flex',alignItems:'center',gap:'12px'}},h('span',{style:{fontSize:'24px'}},x.icon),h('div',null,h('div',{style:{color:'#f0f0f0',fontWeight:700,fontSize:'14px'}},x.name),h('div',{style:{color:'#8899aa',fontSize:'12px',marginTop:'4px'}},x.detail))))})))}
+function VM(){var x=useState(null),exp=x[0],sx=x[1];return h('div',null,h('h2',{style:{fontFamily:"'Playfair Display',serif",fontSize:'24px',color:'#fff',marginBottom:'16px'}},'Medikamente'),h('div',{style:{display:'flex',flexDirection:'column',gap:'10px'}},MEDS.map(function(m,i){return h('div',{key:i,onClick:function(){sx(exp===i?null:i)},style:{background:exp===i?'#16213e':'#0f1629',border:'2px solid '+(exp===i?m.color:'#1a1a3e'),borderRadius:'14px',padding:'16px',cursor:'pointer',transition:'.3s'}},h('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between'}},h('div',null,h('div',{style:{color:m.color,fontWeight:700,fontSize:'15px'}},m.name),h('div',{style:{color:'#667',fontSize:'11px'}},m.trade)),h('div',{style:{color:'#f0f0f0',fontWeight:700,fontSize:'13px',background:m.color+'22',padding:'4px 10px',borderRadius:'8px',border:'1px solid '+m.color+'44'}},m.dose)),exp===i?h('div',{style:{marginTop:'14px',display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',animation:'fadeIn .3s'}},h('div',{style:{background:'#22c55e11',border:'1px solid #22c55e33',borderRadius:'10px',padding:'12px'}},h('div',{style:{color:'#22c55e',fontWeight:700,fontSize:'11px',marginBottom:'6px'}},'⚡ SCHOCKBAR'),h('div',{style:{color:'#b0bcc8',fontSize:'12px',lineHeight:1.6}},m.schockbar)),h('div',{style:{background:'#8b5cf611',border:'1px solid #8b5cf633',borderRadius:'10px',padding:'12px'}},h('div',{style:{color:'#8b5cf6',fontWeight:700,fontSize:'11px',marginBottom:'6px'}},'💜 NICHT SCHOCKBAR'),h('div',{style:{color:'#b0bcc8',fontSize:'12px',lineHeight:1.6}},m.nichtschockbar)),h('div',{style:{gridColumn:'1/-1',background:'#0d1117',borderRadius:'10px',padding:'12px',border:'1px solid #1a1a3e'}},h('div',{style:{color:'#f59e0b',fontWeight:600,fontSize:'11px',marginBottom:'4px'}},'📋 Zubereitung'),h('div',{style:{color:'#8899aa',fontSize:'12px',whiteSpace:'pre-line'}},m.prep),h('div',{style:{color:'#ef4444',fontSize:'11px',marginTop:'6px',fontWeight:600}},'Max: '+m.maxdose))):null)})))}
+function VL(){var x=useState(0),s=x[0],ss=x[1];var steps=[{t:"Status",d:"Patient:in reagiert nicht\nFehlende oder nicht normale Atmung",c:"#ef4444",i:"⚠️"},{t:"Achtung!",d:"Hole Hilfe!\nNotarzt, weitere Rettungsmittel?",c:"#f59e0b",i:"📞"},{t:"Maßnahme",d:"CPR starten\nDefibrillator anschließen",c:"#22c55e",i:"💚"},{t:"Rhythmusanalyse",d:"Pulskontrolle\nSchockbar oder nicht schockbar?",c:"#3b82f6",i:"📊"},{t:"VF/pVT (schockbar)",d:"→ Schock abgeben\n→ CPR 2 Min\n→ Adrenalin nach 3. Defi\n→ Amiodaron 300mg nach 3. Defi\n→ Amiodaron 150mg nach 5. Defi",c:"#f97316",i:"⚡"},{t:"PEA/Asystolie",d:"→ CPR 2 Min\n→ Adrenalin SOFORT!\n→ alle 3-5 Min wiederholen\n→ KEIN Amiodaron!",c:"#8b5cf6",i:"💜"},{t:"ROSC!",d:"Puls+CO₂+EKG bestätigen\n\n• SpO₂ 94-98%\n• CO₂ 35-45 mmHg\n• 12-Kanal-EKG\n• Temp 32-36°C ≥24h\n• Ursache behandeln",c:"#10b981",i:"🏥"}];var st=steps[s];return h('div',null,h('h2',{style:{fontFamily:"'Playfair Display',serif",fontSize:'24px',color:'#fff',marginBottom:'16px'}},'ALS-Algorithmus'),h('div',{style:{background:'#0f1629',border:'2px solid '+st.c,borderRadius:'18px',padding:'24px',textAlign:'center',minHeight:'180px',display:'flex',flexDirection:'column',justifyContent:'center',transition:'.4s',boxShadow:'0 0 30px '+st.c+'22'}},h('div',{style:{fontSize:'32px',marginBottom:'8px'}},st.i),h('div',{style:{color:st.c,fontWeight:800,fontSize:'15px',textTransform:'uppercase',letterSpacing:'1.5px',marginBottom:'10px'}},st.t),h('div',{style:{color:'#d0d8e4',fontSize:'13px',lineHeight:1.8,whiteSpace:'pre-line'}},st.d)),h('div',{style:{display:'flex',justifyContent:'center',gap:'5px',margin:'16px 0'}},steps.map(function(_,i){return h('div',{key:i,onClick:function(){ss(i)},style:{width:i===s?'28px':'8px',height:'8px',borderRadius:'4px',background:i===s?st.c:'#2a2a4e',cursor:'pointer',transition:'.3s'}})})),h('div',{style:{display:'flex',gap:'10px'}},h('button',{onClick:function(){ss(Math.max(0,s-1))},style:{flex:1,padding:'12px',borderRadius:'10px',border:'1px solid #2a2a4e',background:'transparent',color:s===0?'#333':'#889',fontSize:'13px',fontWeight:600}},'← Zurück'),h('button',{onClick:function(){ss(Math.min(steps.length-1,s+1))},style:{flex:1,padding:'12px',borderRadius:'10px',border:'none',background:s===steps.length-1?'#333':st.c,color:'#fff',fontSize:'13px',fontWeight:700}},'Weiter →')),h('div',{style:{marginTop:'20px',padding:'14px',background:'#0d1117',borderRadius:'10px',border:'1px solid #1a1a3e'}},h('div',{style:{color:'#f59e0b',fontWeight:700,fontSize:'12px',marginBottom:'6px'}},'📋 Atemwegssicherung'),h('div',{style:{color:'#8899aa',fontSize:'11px',lineHeight:1.7}},'NFS: LTS-D (50-60 cm H₂O) | NKI: ET (20-30 cm H₂O) | Beatmung: 10/min')))}
+function VC(){return h('div',null,h('h2',{style:{fontFamily:"'Playfair Display',serif",fontSize:'24px',color:'#fff',marginBottom:'16px'}},'CRM-Leitsätze'),h('div',{style:{display:'flex',flexDirection:'column',gap:'6px'}},CRM.map(function(ls){return h('div',{key:ls.n,style:{background:'#0f1629',border:'1px solid #1a1a3e',borderRadius:'10px',padding:'12px 14px',display:'flex',alignItems:'center',gap:'12px'}},h('div',{style:{width:'28px',height:'28px',borderRadius:'7px',background:'#dc2626',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'12px',fontWeight:800,color:'#fff',flexShrink:0}},ls.n),h('div',{style:{color:'#e0e8f0',fontSize:'13px',fontWeight:600,lineHeight:1.4}},ls.t))})),h('div',{style:{marginTop:'20px',padding:'16px',background:'#0d1117',borderRadius:'12px',border:'1px solid #f59e0b33'}},h('div',{style:{color:'#f59e0b',fontWeight:700,fontSize:'13px',marginBottom:'8px'}},'🤝 Prüfungsrelevant:'),h('div',{style:{color:'#b0bcc8',fontSize:'12px',lineHeight:1.7,whiteSpace:'pre-line'}},'• CRM-Grundlagen anwenden\n• 10-für-10 Prinzip (Team-Timeout)\n• Closed-Loop-Kommunikation\n• Double Check\n• Speak-Up: Jeder darf Bedenken äußern!')))}
+function VQ(){var s1=useState(0),cur=s1[0],sC=s1[1];var s2=useState(null),sel=s2[0],sS=s2[1];var s3=useState(false),show=s3[0],sH=s3[1];var s4=useState(0),score=s4[0],sSc=s4[1];var s5=useState(0),ans=s5[0],sA=s5[1];var s6=useState([]),shuf=s6[0],sSh=s6[1];useEffect(function(){sSh(QUIZ.slice().sort(function(){return Math.random()-.5}))},[]);var q=shuf[cur];if(!q)return null;function pick(i){if(sel!==null)return;sS(i);sH(true);sA(ans+1);if(i===q.c)sSc(score+1)}function next(){sS(null);sH(false);sC((cur+1)%shuf.length)}function reset(){sSc(0);sA(0);sC(0);sS(null);sH(false);sSh(QUIZ.slice().sort(function(){return Math.random()-.5}))}return h('div',null,h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}},h('h2',{style:{fontFamily:"'Playfair Display',serif",fontSize:'24px',color:'#fff',margin:0}},'Quiz'),h('div',{style:{display:'flex',gap:'10px',alignItems:'center'}},h('span',{style:{color:ans>0&&score/ans>=.8?'#22c55e':'#ef4444',fontWeight:800,fontSize:'18px'}},score+'/'+ans),h('button',{onClick:reset,style:{background:'#1a1a3e',border:'1px solid #2a2a4e',borderRadius:'7px',color:'#667',padding:'5px 10px',fontSize:'11px'}},'↻'))),h('div',{style:{color:'#667',fontSize:'11px',marginBottom:'14px'}},'Frage '+(cur+1)+'/'+shuf.length),h('div',{style:{background:'#0f1629',borderRadius:'14px',padding:'20px',border:'1px solid #1a1a3e',marginBottom:'14px'}},h('div',{style:{color:'#f0f0f0',fontSize:'14px',fontWeight:600,lineHeight:1.6,marginBottom:'16px'}},q.q),h('div',{style:{display:'flex',flexDirection:'column',gap:'8px'}},q.o.map(function(o,i){var bg='#0d1117',bd='#1a1a3e',tc='#b0bcc8';if(show){if(i===q.c){bg='#22c55e22';bd='#22c55e';tc='#22c55e'}else if(i===sel){bg='#ef444422';bd='#ef4444';tc='#ef4444'}}return h('button',{key:i,onClick:function(){pick(i)},style:{background:bg,border:'2px solid '+bd,borderRadius:'10px',padding:'11px 13px',textAlign:'left',color:tc,fontSize:'13px',transition:'.2s',lineHeight:1.4}},h('span',{style:{fontWeight:700,marginRight:'6px',opacity:.4}},String.fromCharCode(65+i)+'.'),o)})),show?h('div',{style:{marginTop:'14px',padding:'12px',borderRadius:'10px',background:sel===q.c?'#22c55e11':'#ef444411',border:'1px solid '+(sel===q.c?'#22c55e33':'#ef444433')}},h('div',{style:{color:sel===q.c?'#22c55e':'#ef4444',fontWeight:700,fontSize:'12px',marginBottom:'4px'}},sel===q.c?'✅ Richtig!':'❌ Falsch!'),h('div',{style:{color:'#8899aa',fontSize:'12px',lineHeight:1.5}},q.e)):null),show?h('button',{onClick:next,style:{width:'100%',padding:'14px',borderRadius:'10px',border:'none',background:'#dc2626',color:'#fff',fontSize:'13px',fontWeight:700}},'Nächste Frage →'):null)}
+function VS(){var SC=window.SCENARIOS;var s1=useState(0),ci=s1[0],sCi=s1[1];var s2=useState(0),si=s2[0],sSi=s2[1];var s3=useState(null),sel=s3[0],sS=s3[1];var s4=useState(false),show=s4[0],sH=s4[1];var s5=useState(0),score=s5[0],sSc=s5[1];var s6=useState(0),total=s6[0],sT=s6[1];var sc=SC[ci];var step=sc.steps[si];function pick(i){if(sel!==null)return;sS(i);sH(true);sT(total+1);if(i===step.correct)sSc(score+1)}function next(){if(si<sc.steps.length-1){sSi(si+1);sS(null);sH(false)}}function switchCase(i){sCi(i);sSi(0);sS(null);sH(false)}function resetAll(){sSi(0);sS(null);sH(false);sSc(0);sT(0)}return h('div',null,h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}},h('h2',{style:{fontFamily:"'Playfair Display',serif",fontSize:'24px',color:'#fff',margin:0}},'Szenarien'),total>0?h('span',{style:{color:score/total>=.8?'#22c55e':'#f59e0b',fontWeight:700,fontSize:'16px'}},score+'/'+total+' ✓'):null),h('div',{style:{display:'flex',gap:'4px',marginBottom:'16px',overflowX:'auto',paddingBottom:'4px'}},SC.map(function(s,i){return h('button',{key:i,onClick:function(){switchCase(i)},style:{padding:'8px 12px',borderRadius:'8px',border:ci===i?'2px solid #dc2626':'1px solid #1a1a3e',background:ci===i?'#dc262622':'#0f1629',color:ci===i?'#dc2626':'#667',fontSize:'10px',fontWeight:600,whiteSpace:'nowrap',flexShrink:0}},s.title.split('–')[0].trim())})),h('div',{style:{background:'#0f1629',borderRadius:'14px',padding:'16px',border:'1px solid #f59e0b44',marginBottom:'12px'}},h('div',{style:{color:'#f59e0b',fontWeight:700,fontSize:'13px',marginBottom:'6px'}},'🚑 '+sc.title),h('div',{style:{color:'#889',fontSize:'11px',marginBottom:'8px'}},sc.alarm),h('div',{style:{color:'#b0bcc8',fontSize:'12px',lineHeight:1.6}},sc.patient+' | Melder: '+sc.melder),h('div',{style:{color:'#e0e8f0',fontSize:'13px',lineHeight:1.6,marginTop:'8px',fontStyle:'italic'}},sc.eindruck)),h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',marginBottom:'12px'}},h('div',{style:{background:'#0d1117',borderRadius:'10px',padding:'10px',border:'1px solid #1a1a3e'}},h('div',{style:{color:'#3b82f6',fontWeight:700,fontSize:'10px',marginBottom:'4px'}},'ABCDE'),Object.entries(sc.abcde).map(function(e){return h('div',{key:e[0],style:{color:'#8899aa',fontSize:'10px',lineHeight:1.5}},h('span',{style:{color:'#f0f0f0',fontWeight:600}},e[0].toUpperCase()+': '),e[1])})),h('div',{style:{background:'#0d1117',borderRadius:'10px',padding:'10px',border:'1px solid #1a1a3e'}},h('div',{style:{color:'#ef4444',fontWeight:700,fontSize:'10px',marginBottom:'4px'}},'VITALS'),['ekg','spo2','etco2','hf','bz','temp'].map(function(k){return sc.vitals[k]?h('div',{key:k,style:{color:'#8899aa',fontSize:'10px',lineHeight:1.5}},h('span',{style:{color:'#f0f0f0',fontWeight:600}},k.toUpperCase()+': '),sc.vitals[k]):null}))),h('div',{style:{display:'flex',gap:'4px',marginBottom:'12px'}},sc.steps.map(function(_,i){return h('div',{key:i,style:{flex:1,height:'4px',borderRadius:'2px',background:i<si?'#22c55e':i===si?'#dc2626':'#1a1a3e',transition:'.3s'}})})),h('div',{style:{color:'#667',fontSize:'11px',marginBottom:'10px'}},'Entscheidung '+(si+1)+' von '+sc.steps.length),h('div',{style:{background:'#0f1629',borderRadius:'14px',padding:'20px',border:'2px solid #3b82f6',marginBottom:'12px'}},h('div',{style:{color:'#3b82f6',fontWeight:700,fontSize:'14px',marginBottom:'14px'}},'🧠 '+step.prompt),h('div',{style:{display:'flex',flexDirection:'column',gap:'8px'}},step.options.map(function(o,i){var bg='#0d1117',bd='#1a1a3e',tc='#b0bcc8';if(show){if(i===step.correct){bg='#22c55e22';bd='#22c55e';tc='#22c55e'}else if(i===sel){bg='#ef444422';bd='#ef4444';tc='#ef4444'}}return h('button',{key:i,onClick:function(){pick(i)},style:{background:bg,border:'2px solid '+bd,borderRadius:'10px',padding:'11px 13px',textAlign:'left',color:tc,fontSize:'12px',transition:'.2s',lineHeight:1.5}},h('span',{style:{fontWeight:700,marginRight:'6px',opacity:.4}},String.fromCharCode(65+i)+'.'),o)})),show?h('div',{style:{marginTop:'14px',padding:'12px',borderRadius:'10px',background:sel===step.correct?'#22c55e11':'#ef444411',border:'1px solid '+(sel===step.correct?'#22c55e33':'#ef444433')}},h('div',{style:{color:sel===step.correct?'#22c55e':'#ef4444',fontWeight:700,fontSize:'12px',marginBottom:'4px'}},sel===step.correct?'✅ Richtig!':'❌ Falsch!'),h('div',{style:{color:'#8899aa',fontSize:'11px',lineHeight:1.6}},step.feedback)):null),h('div',{style:{display:'flex',gap:'10px'}},h('button',{onClick:resetAll,style:{padding:'12px',borderRadius:'10px',border:'1px solid #2a2a4e',background:'transparent',color:'#667',fontSize:'12px',fontWeight:600}},'↻'),show&&si<sc.steps.length-1?h('button',{onClick:next,style:{flex:1,padding:'12px',borderRadius:'10px',border:'none',background:'#dc2626',color:'#fff',fontSize:'13px',fontWeight:700}},'Nächste Entscheidung →'):null,show&&si===sc.steps.length-1?h('div',{style:{flex:1,padding:'12px',borderRadius:'10px',background:'#22c55e22',border:'1px solid #22c55e',color:'#22c55e',fontSize:'13px',textAlign:'center',fontWeight:700}},'🎯 Szenario geschafft!'):null))}
+function VK(){var cats=[{name:"Team & Kommunikation",max:20,items:["CRM-Grundlagen","10-für-10 Prinzip","Closed-Loop-Kommunikation","Double Check"]},{name:"Untersuchung",max:15,items:["Std. Beurteilung Atemweg","Std. Beurteilung Atmung","Std. erweiterte Untersuchung","Erkennen reversibler Ursachen (4H+HITS)","Notfallbezogene klin. Untersuchung"]},{name:"Behandlung",max:50,items:["A-Probleme (RKNÖ Algo 01b)","B-Probleme (RKNÖ Algo 01b)","C-Probleme (RKNÖ Algo 01)","Therapie Kreislaufstillstand","Defibrillation/Rhythmusanalyse","Medikamentenvorbereitung","Arzneimittelgabe nach Qualifikation","Reversible Ursachen behandeln"]},{name:"Übergabe an NA",max:5,items:["Pat.-Übergabe nach Priorität"]},{name:"Nachbesprechung",max:10,items:["Was würden Sie anders machen?","Verdachtsdiagnose + Differentialdiagnosen"]}];return h('div',null,h('h2',{style:{fontFamily:"'Playfair Display',serif",fontSize:'24px',color:'#fff',marginBottom:'6px'}},'Prüfungs-Checkliste'),h('p',{style:{color:'#889',fontSize:'12px',marginBottom:'16px'}},'Beurteilungsbogen REZERTNOE (ALS) 24.0 – Max. 100 Punkte'),h('div',{style:{display:'flex',gap:'8px',marginBottom:'20px',flexWrap:'wrap'}},h('div',{style:{padding:'8px 14px',borderRadius:'8px',background:'#22c55e22',border:'1px solid #22c55e',color:'#22c55e',fontSize:'11px',fontWeight:700}},'POSITIV: 63-100'),h('div',{style:{padding:'8px 14px',borderRadius:'8px',background:'#f59e0b22',border:'1px solid #f59e0b',color:'#f59e0b',fontSize:'11px',fontWeight:700}},'POSITIV: 50-62'),h('div',{style:{padding:'8px 14px',borderRadius:'8px',background:'#ef444422',border:'1px solid #ef4444',color:'#ef4444',fontSize:'11px',fontWeight:700}},'NEGATIV: 0-49')),h('div',{style:{display:'flex',flexDirection:'column',gap:'12px'}},cats.map(function(cat,i){return h('div',{key:i,style:{background:'#0f1629',borderRadius:'14px',padding:'16px',border:'1px solid #1a1a3e'}},h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'10px'}},h('div',{style:{color:'#f0f0f0',fontWeight:700,fontSize:'14px'}},cat.name),h('div',{style:{color:'#dc2626',fontWeight:800,fontSize:'14px'}},'max. '+cat.max)),cat.items.map(function(it,j){return h('div',{key:j,style:{color:'#8899aa',fontSize:'12px',padding:'4px 0 4px 14px',borderLeft:'2px solid #dc262644',marginBottom:'2px',lineHeight:1.5}},it)}))})))}
+function App(){var s=useState(0),tab=s[0],sT=s[1];return h('div',{style:{minHeight:'100vh',background:'linear-gradient(180deg,#0a0e1a,#111827)',color:'#e0e8f0',fontFamily:"'DM Sans',sans-serif"}},h('div',{style:{maxWidth:'640px',margin:'0 auto',padding:'16px 14px 40px'}},h('div',{style:{textAlign:'center',marginBottom:'24px'}},h('div',{style:{display:'inline-flex',alignItems:'center',gap:'8px',background:'#dc262622',border:'1px solid #dc262644',borderRadius:'40px',padding:'6px 16px',marginBottom:'12px'}},h('span',{style:{fontSize:'16px'}},'🏥'),h('span',{style:{color:'#dc2626',fontWeight:700,fontSize:'11px',letterSpacing:'2px',textTransform:'uppercase'}},'RKNÖ')),h('h1',{style:{fontFamily:"'Playfair Display',serif",fontSize:'28px',fontWeight:800,color:'#fff',lineHeight:1.1,marginBottom:'6px'}},'ALS Training'),h('p',{style:{color:'#667',fontSize:'12px'}},'NFS Rezertifizierung · ERC 2021 · v2.0')),h(TB,{a:tab,set:sT}),tab===0?h(VA):null,tab===1?h(VH):null,tab===2?h(VM):null,tab===3?h(VL):null,tab===4?h(VC):null,tab===5?h(VQ):null,tab===6?h(VS):null,tab===7?h(VK):null,h('div',{style:{marginTop:'28px',padding:'14px',background:'#0d1117',borderRadius:'10px',border:'1px solid #1a1a3e',textAlign:'center'}},h('div',{style:{color:'#445',fontSize:'11px'}},'📚 ERC 2021 · RKNÖ RDmed · InPASS CRM'))))}
+ReactDOM.render(h(App),document.getElementById('root'));
 
-    // ==================== DATA ====================
-    const ABCDE_DATA = [
-      {
-        letter: "A", title: "Airway (Atemwege)", question: "Atemwege frei?",
-        action: "Frei machen, frei halten!",
-        assessment: ["Atemwege verlegt?","Verlegung sichtbar?","Atemgeräusche pathologisch?"],
-        measures_all: ["Modifizierter Esmarch-Handgriff","Überstrecken des Kopfes","Rückenschläge bzw. Oberbauchkompressionen","Ausräumen der Mundhöhle","Magill-Zange","Absaugen","Stabile Seitenlage","Wendl-Tubus"],
-        measures_nfs: ["Laryngoskopie beim Bolusgeschen (ab NKI)"],
-        color: "#E74C3C"
-      },
-      {
-        letter: "B", title: "Breathing (Atmung)", question: "Atmung normal?",
-        action: "Lagerung, Sauerstoffgabe",
-        assessment: ["Qualität der Atmung","Frequenz (>10 und <30), Atemtiefe","Bewegung des Brustkorbes, Geräusche","Atemhilfsmuskulatur","Farbe der Haut (Schleimhaut)","Rosig, zyanotisch (blass-blau, grau)","Pulsoxymetrie: SpO₂ >94%"],
-        measures_all: ["Sauerstoffgabe (nach Vorgaben)","Lagerung mit erhöhtem Oberkörper","Beengende Kleidungsstücke öffnen","Frischluftzufuhr (wenn möglich)","Bei AKS: Beutel-Masken Beatmung","Bei AKS: Guedeltubus","Bei AKS: Larynxtubus"],
-        measures_nfs: ["Inhalative Medikamente (ab NFS)","Assistierte Beatmung (ab NFS)","NIV Beatmung (ab NKI)","Bei AKS: Endotracheale Intubation (ab NKI)"],
-        color: "#3498DB"
-      },
-      {
-        letter: "C", title: "Circulation (Kreislauf)", question: "Kreislauf beeinträchtigt?",
-        action: "Lagerung, Blutstillung, Wärmeerhalt",
-        assessment: ["Puls tastbar? Frequenz, Rhythmus","Hautfarbe, Hauttemperatur, schweißig?","Rekapillarisierungszeit (<2sec)","Blutungen?","Unfallhergang","4 große Blutungsräume (Brustkorb, Bauch, Becken, Beine)"],
-        measures_all: ["Blutstillung!","Lagerung (Beine erhöht?)","Wärmeerhalt"],
-        measures_nfs: ["Kreislaufwirksame Medikamente (ab NFS)","Volumentherapie (ab NKA)","EKG-Diagnostik (ab NFS)"],
-        color: "#E67E22"
-      },
-      {
-        letter: "D", title: "Disabilities (neurol. Defizite)", question: "Wachheit, Orientierung, Reaktion?",
-        action: "Lagerung, Immobilisation, Wundversorgung",
-        assessment: ["ZOPS – Zeitlich, Örtlich, zur Person, zur Situation","AVPU – Alert, Voice, Pain, Unresponsive","FAST (Schlaganfall-Screening)","Pupillen (Lichtreaktion)","Motorik und Sensibilität","an den Extremitäten (bei Trauma)"],
-        measures_all: ["Ganzkörperimmobilisation – bei Trauma/V.a. WS-Schädigung","Einsatztaktische Überlegungen (ZielKH, Unterstützung,...)"],
-        measures_nfs: ["Verdachtsdiagnosen-orientierte Medikamente (ab NFS)","z.B. Unterzucker → Glucose","Krampfanfall → Benzodiazepine"],
-        color: "#9B59B6"
-      },
-      {
-        letter: "E", title: "Exposure (fokussierte Untersuchung)", question: "Entkleiden, Entscheiden, Erweiterte Untersuchung",
-        action: "Transfer, Transport, Patientenbetreuung",
-        assessment: ["Weitere Krankheitsbilder oder Verletzungsmuster?","10-für-10 Prinzip anwenden","Weitere Versorgung/Transport","Erweiterte Untersuchung","Reevaluation"],
-        measures_all: ["Zielgerichtete Untersuchung auf grobe Auffälligkeiten","Ruhigstellung/Schienung bei Extremitäten-Trauma","Entscheidungen im 10-für-10 Prinzip","Erweiterte Untersuchung: SAMPLE-Anamnese","Apparative Untersuchung vervollständigen","Erweiterte Ganzkörperuntersuchung (wenn Zeit/Personal)"],
-        measures_nfs: ["Keine spezifischen Unterschiede"],
-        color: "#1ABC9C"
-      }
-    ];
-
-    const CRM_LEITSAETZE = [
-      { nr:1, text:"Kenne Deine Arbeitsumgebung.", detail:"Wissen über Ausrüstung, Medikamente, Räumlichkeiten und Teamfähigkeiten." },
-      { nr:2, text:"Antizipiere und plane voraus.", detail:"Proaktives Denken – was könnte als nächstes passieren?" },
-      { nr:3, text:"Fordere Hilfe an – lieber früh als spät.", detail:"Frühzeitiges Anfordern von Unterstützung (NAH, NEF, weiterer RTW)." },
-      { nr:4, text:"Übernimm die Führungsrolle oder sei ein gutes Teammitglied mit Beharrlichkeit.", detail:"Klare Rollenverteilung: Teamleader vs. Teamfollower." },
-      { nr:5, text:"Verteile die Arbeitsbelastung. (10-für-10)", detail:"Dem richtigen Teammitglied die richtige Aufgabe." },
-      { nr:6, text:"Mobilisiere alle verfügbaren Ressourcen.", detail:"Alle Ressourcen nutzen – First Responder, Feuerwehr, Technik." },
-      { nr:7, text:"Kommuniziere sicher und effektiv – sag, was Dich bewegt.", detail:"Closed Loop Communication, Speak-Up Kultur." },
-      { nr:8, text:"Beachte und verwende alle vorhandenen Informationen.", detail:"Anamnese, Umfeld, Medikamentenliste, Angehörige befragen." },
-      { nr:9, text:"Verhindere und erkenne Fixierungsfehler.", detail:"Tunnelblick vermeiden – immer das Gesamtbild betrachten." },
-      { nr:10, text:"Habe Zweifel und überprüfe genau. (Double Check!)", detail:"Nie etwas annehmen! Medikamente, Dosierungen immer kontrollieren." },
-      { nr:11, text:"Verwende Merkhilfen und schlage nach.", detail:"Checklisten, Algorithmen, Arzneimittellisten nutzen." },
-      { nr:12, text:"Re-evaluiere die Situation immer wieder. (10-für-10)", detail:"Nimm 10 Sekunden für die Planung der nächsten 10 Minuten." },
-      { nr:13, text:"Achte auf gute Teamarbeit.", detail:"Aktives Mitdenken, sinnvolles Zuarbeiten, Teamleader:in entlasten." },
-      { nr:14, text:"Lenke deine Aufmerksamkeit bewusst.", detail:"Priorisierung – was ist jetzt am wichtigsten?" },
-      { nr:15, text:"Setze Prioritäten dynamisch.", detail:"Prioritäten ändern sich – flexibel reagieren." }
-    ];
-
-    const QUIZ = [
-      { q:"Patient reagiert nicht, fehlende/nicht normale Atmung. Erster Schritt?", options:["ABCDE-Schema starten","CPR starten & Defibrillator anschließen","Medikamente vorbereiten","Atemweg sichern"], correct:1, explanation:"Sofort CPR starten und Defibrillator anschließen! Gleichzeitig Hilfe holen." },
-      { q:"Defi zeigt VF/pulslose VT. Was machst du?", options:["CPR fortsetzen 2min","Schock abgeben, dann CPR 2min","Adrenalin 1mg sofort","Amiodaron 300mg"], correct:1, explanation:"Schockbarer Rhythmus → Schock abgeben, dann CPR 2 Minuten." },
-      { q:"Wann Adrenalin beim SCHOCKBAREN Rhythmus?", options:["Sofort","Nach 1. Defi","Nach 3. Defi","Nach ROSC"], correct:2, explanation:"Adrenalin 1mg i.v. nach der 3. Defibrillation, dann alle 3-5 Minuten." },
-      { q:"Wann Amiodaron?", options:["Sofort bei VF/VT","Nach 3. Defi (300mg) und 5. Defi (150mg)","Nur nach ROSC","Gar nicht"], correct:1, explanation:"Amiodaron 300mg nach 3. Defi, 150mg nach 5. Defi." },
-      { q:"PEA/Asystolie – korrekte Maßnahme?", options:["Defibrillation","CPR 2min + Adrenalin 1mg sofort","Amiodaron","Nur HDM"], correct:1, explanation:"Nicht schockbar → CPR + Adrenalin sofort, dann alle 3-5 Min." },
-      { q:"ROSC – Zielwert SpO₂?", options:["100%","94-98%","88-92%",">99%"], correct:1, explanation:"SpO₂ 94-98%. Keine Hyperoxie!" },
-      { q:"etCO₂ bei exzellenten Thoraxkompressionen?", options:["5-10 mmHg","15-18 mmHg","33-43 mmHg","50-60 mmHg"], correct:1, explanation:"Exzellente HDM → etCO₂ ca. 15-18 mmHg. Normbereich Spontankreislauf: 33-43 mmHg." },
-      { q:"LTS-D Cuffdruck?", options:["20-30 cm H₂O","30-40 cm H₂O","50-60 cm H₂O","80-100 cm H₂O"], correct:2, explanation:"LTS-D: 50-60 cm H₂O. ET: 20-30 cm H₂O." },
-      { q:"Tubustiefe Männer?", options:["18-19 cm","20-21 cm","22-23 cm","24-25 cm"], correct:2, explanation:"Männer 22-23 cm, Frauen 20-21 cm." },
-      { q:"10-für-10 Prinzip?", options:["10min CPR, 10min Pause","10 Sek. für Planung der nächsten 10 Min.","10 Atemzüge pro 10 Kompressionen","10 Teammitglieder für 10 Patienten"], correct:1, explanation:"10 Sekunden Pause → Planung der nächsten 10 Minuten. Team-Timeout!" },
-      { q:"Wer geht an die Kopfposition?", options:["P3","P2 (NKV)","Teamleader:in (min. NFS)","Egal wer"], correct:2, explanation:"Teamleader (min. NFS) → Kopf. P2 → i.v. Zugang. P3 → HDM." },
-      { q:"Beatmungsfrequenz bei gesichertem Atemweg?", options:["30:2","10/min","15/min","20/min"], correct:1, explanation:"Bei gesichertem Atemweg + durchgehender HDM: 10/min." },
-      { q:"Was sofort nach ROSC?", options:["Röntgen","12-Kanal-EKG","CT-Kopf","BGA"], correct:1, explanation:"12-Kanal-EKG nach ROSC. Vorsicht: ROSC-EKG hat geringe Aussagekraft." },
-      { q:"Temperaturziel nach ROSC?", options:["34-35°C","32-36°C","36-37°C","37-38°C"], correct:1, explanation:"32-36°C über ≥24h. Fieber für 72h verhindern." },
-      { q:"Beatmung insuffizient nach LTS-D (ohne NKI)?", options:["Sofort ET","Max. 1 weiterer Versuch LTS-D + Optimierung","Koniotomie","Aufgeben"], correct:1, explanation:"Max. 1 weiterer LTS-D Versuch mit Optimierung. Sonst CPR 30:2 mit Beutel-Maske." },
-      { q:"Hypokapnie – Lösung?", options:["BF erhöhen","BF verlangsamen","Mehr O₂","Weniger O₂"], correct:1, explanation:"Hypokapnie = zu wenig CO₂ durch Hyperventilation → Beatmungsfrequenz verlangsamen." },
-      { q:"Was gehört NICHT zum Team-Timeout?", options:["Stoppen (Ausnahme HDM)","Offene Kommunikation","Medikamente eigenständig geben","Nächste Schritte festlegen"], correct:2, explanation:"Eigenständiges Medikamentengeben ohne Absprache widerspricht CRM!" },
-      { q:"Speak-Up bedeutet?", options:["Teamleader gibt alle Befehle","Jeder darf auf Gefahren hinweisen","Nur Notarzt äußert Bedenken","Feedback nach dem Einsatz"], correct:1, explanation:"ALLE Teammitglieder dürfen Bedenken äußern – unabhängig von Hierarchie." },
-      { q:"SAMPLE – wofür steht S?", options:["Situation","Symptome/Beschwerden","Sauerstoff","Status"], correct:1, explanation:"S=Symptome, A=Allergien, M=Medikamente, P=Patientengeschichte, L=Letzte Mahlzeit, E=Ereignis." },
-      { q:"Vor dem ABCDE – was prüfst du zuerst?", options:["Atemwege","Bewusstsein, starke Blutung, Unfallhergang","Kreislauf","Medikamentenliste"], correct:1, explanation:"Vor ABCDE: Bewusstseinszustand, starke Blutung → Blutstillung (xABCDE), Unfall → Immobilisation." },
-      { q:"4 große Blutungsräume bei C?", options:["Kopf, Hals, Arme, Beine","Brustkorb, Bauch, Becken, Beine","Kopf, Brustkorb, Arme, Beine","Hals, Bauch, Becken, Arme"], correct:1, explanation:"Die 4 großen Blutungsräume: Brustkorb, Bauch, Becken, Beine." },
-      { q:"AVPU – wofür steht P?", options:["Pulse","Pain","Pressure","Position"], correct:1, explanation:"AVPU: Alert, Voice, Pain, Unresponsive." },
-      { q:"Rekapillarisierungszeit – Normwert?", options:["<1 Sek","<2 Sek","<5 Sek","<10 Sek"], correct:1, explanation:"Rekapillarisierungszeit normal: <2 Sekunden." },
-      { q:"CRM-Leitsatz 3 – was sagt er?", options:["Kenne deine Umgebung","Antizipiere","Fordere Hilfe an – lieber früh als spät","Übernimm die Führung"], correct:2, explanation:"Leitsatz 3: Fordere Hilfe an – lieber früh als spät!" }
-    ];
-
-    const SCENARIOS = [
-      {
-        title: "Atem-Kreislauf-Stillstand – Wohnung",
-        scenario: "58-jähriger Mann, von Ehefrau bewusstlos im Wohnzimmer gefunden. Keine Reaktion, keine normale Atmung (Schnappatmung).",
-        steps: [
-          { prompt:"Was ist dein erster Schritt?", answer:"Hilfe holen (NAH/NEF anfordern), CPR starten, Defibrillator anschließen." },
-          { prompt:"Defi zeigt Kammerflimmern. Was tust du?", answer:"Schock abgeben, sofort CPR 2 Min. Aufgabenverteilung: Teamleader → Kopf, P2 → i.v. Zugang, P3 → HDM." },
-          { prompt:"Nach 3. Defi – Medikamente?", answer:"Adrenalin 1mg i.v. + Amiodaron 300mg i.v. Danach Adrenalin alle 3-5 Min. Nach 5. Defi: Amiodaron 150mg." },
-          { prompt:"ROSC! Nächste Schritte?", answer:"ABCDE, SpO₂ 94-98%, CO₂ 35-45 mmHg, 12-Kanal-EKG, Ursache erkennen, Normaltemperatur, Transport in geeignete Klinik." }
-        ]
-      },
-      {
-        title: "Atemwegsproblem – Bewusstlose Patientin",
-        scenario: "67-jährige Patientin, Pflegeheim, bewusstlos. Stridor, Atemhilfsmuskulatur, SpO₂ 78%.",
-        steps: [
-          { prompt:"A – Airway: Was zuerst?", answer:"Esmarch-Handgriff, Mundhöhle inspizieren/ausräumen, Absaugen, Wendl-Tubus, hochdosiert O₂." },
-          { prompt:"B – SpO₂ steigt auf 89%. Atmung angestrengt. Was tust du?", answer:"Lagerung erhöhter Oberkörper, Kleidung öffnen, Frischluft. Als NFS: assistierte Beatmung, ggf. inhalative Medikamente." },
-          { prompt:"C – Puls 110/min, regelmäßig, blass-kühl. Was checkst du?", answer:"Rekapillarisierungszeit, Blutdruck, EKG, Blutungen ausschließen, Wärmeerhalt." },
-          { prompt:"D – Neurologischer Status?", answer:"AVPU (reagiert auf Pain), Pupillenreaktion, ZOPS, FAST-Test, Blutzucker messen!" }
-        ]
-      },
-      {
-        title: "Reanimation im 2er-Team",
-        scenario: "Du bist mit einem RS (Rettungssanitäter) unterwegs. 72-jähriger Mann, Asystolie am Monitor. Kein weiteres Rettungsmittel vor Ort.",
-        steps: [
-          { prompt:"Wie organisierst du die Reanimation im 2er-Team?", answer:"Hochqualitative HDM mit minimaler Unterbrechung ist Priorität. Frühzeitige Defi + suffiziente Beatmung. CPR 30:2 starten, Defi anschließen." },
-          { prompt:"Welche ALS-Maßnahmen kannst du trotzdem setzen?", answer:"Teilelemente der ALS-Leitlinie unabhängig durchführbar: Kapnografie, Besprechung reversibler Ursachen, angepasstes Atemwegsmanagement. Erweiterte Maßnahmen DÜRFEN die Basismaßnahmen NICHT gefährden!" },
-          { prompt:"Der RS fragt: 'Soll ich den Larynxtubus probieren?' – Deine Entscheidung?", answer:"Einschätzung: Kann der RS eine qualitativ hochwertige HDM UND Atemwegssicherung leisten? Wenn ja → LTS-D Versuch. Wenn unsicher → Beutel-Maske + Guedel ist sicherer. 10-für-10 anwenden!" }
-        ]
-      }
-    ];
-
-    // ==================== COMPONENTS ====================
-    const TABS = ["ABCDE","ALS-Algo","CRM","Quiz","Szenarien"];
-
-    function TabBar({active, set}) {
-      return React.createElement('div', {style:{display:'flex',gap:'2px',background:'#1a1a2e',padding:'4px',borderRadius:'12px',marginBottom:'24px',flexWrap:'wrap'}},
-        TABS.map((t,i) => React.createElement('button', {
-          key:t, onClick:()=>set(i),
-          style:{flex:1,minWidth:'70px',padding:'12px 6px',border:'none',borderRadius:'10px',
-            background:active===i?'#dc2626':'transparent',
-            color:active===i?'#fff':'#8899aa',
-            fontFamily:"'DM Sans',sans-serif",fontSize:'12px',fontWeight:active===i?700:500,cursor:'pointer',transition:'all 0.3s',letterSpacing:'0.5px'}
-        }, t))
-      );
-    }
-
-    function ABCDEView() {
-      const [exp, setExp] = useState(null);
-      return React.createElement('div', null,
-        React.createElement('h2', {style:{fontFamily:"'Playfair Display',serif",fontSize:'26px',color:'#f0f0f0',marginBottom:'8px'}}, 'ABCDE-Schema'),
-        React.createElement('p', {style:{color:'#8899aa',marginBottom:'20px',fontSize:'13px',lineHeight:1.6}},
-          'Vor ABCDE: Bewusstsein → starke Blutung → Blutstillung (xABCDE) → Unfall → Immobilisation'),
-        React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'12px'}},
-          ABCDE_DATA.map((item, idx) =>
-            React.createElement('div', {
-              key:item.letter, onClick:()=>setExp(exp===idx?null:idx),
-              style:{background:exp===idx?'#16213e':'#0f1629',border:`2px solid ${exp===idx?item.color:'#1a1a3e'}`,
-                borderRadius:'16px',padding:'20px',cursor:'pointer',transition:'all 0.3s'}
-            },
-              React.createElement('div', {style:{display:'flex',alignItems:'center',gap:'16px'}},
-                React.createElement('div', {style:{width:'52px',height:'52px',borderRadius:'14px',
-                  background:`linear-gradient(135deg,${item.color},${item.color}88)`,
-                  display:'flex',alignItems:'center',justifyContent:'center',
-                  fontSize:'24px',fontWeight:800,color:'#fff',flexShrink:0,
-                  boxShadow:`0 4px 20px ${item.color}33`}}, item.letter),
-                React.createElement('div', {style:{flex:1}},
-                  React.createElement('div', {style:{color:'#f0f0f0',fontWeight:700,fontSize:'15px'}}, item.title),
-                  React.createElement('div', {style:{color:item.color,fontSize:'12px',marginTop:'4px',fontStyle:'italic'}},
-                    item.question + ' → ' + item.action)
-                ),
-                React.createElement('div', {style:{transform:exp===idx?'rotate(180deg)':'rotate(0)',transition:'0.3s',color:'#8899aa',fontSize:'16px'}}, '▼')
-              ),
-              exp===idx && React.createElement('div', {style:{marginTop:'20px'}},
-                React.createElement('div', {style:{marginBottom:'16px'}},
-                  React.createElement('div', {style:{color:item.color,fontWeight:700,fontSize:'12px',marginBottom:'8px',textTransform:'uppercase',letterSpacing:'1px'}}, 'Beurteilung'),
-                  item.assessment.map((a,i) => React.createElement('div', {key:i,style:{color:'#c0c8d4',fontSize:'13px',padding:'4px 0 4px 16px',borderLeft:`2px solid ${item.color}44`,marginBottom:'2px'}}, a))
-                ),
-                React.createElement('div', {style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}},
-                  React.createElement('div', null,
-                    React.createElement('div', {style:{color:'#22c55e',fontWeight:700,fontSize:'11px',marginBottom:'8px',textTransform:'uppercase',letterSpacing:'1px'}}, 'Alle Sanitäter:innen'),
-                    item.measures_all.map((m,i) => React.createElement('div', {key:i,style:{color:'#a0b0c0',fontSize:'12px',padding:'3px 0',lineHeight:1.5}}, '• '+m))
-                  ),
-                  React.createElement('div', null,
-                    React.createElement('div', {style:{color:'#f59e0b',fontWeight:700,fontSize:'11px',marginBottom:'8px',textTransform:'uppercase',letterSpacing:'1px'}}, 'NFS bis NKI'),
-                    item.measures_nfs.map((m,i) => React.createElement('div', {key:i,style:{color:'#a0b0c0',fontSize:'12px',padding:'3px 0',lineHeight:1.5}}, '• '+m))
-                  )
-                )
-              )
-            )
-          )
-        )
-      );
-    }
-
-    function ALSAlgoView() {
-      const [step, setStep] = useState(0);
-      const steps = [
-        {title:"Status",desc:"Patient:in reagiert nicht\nFehlende oder nicht normale Atmung",color:"#ef4444",icon:"⚠️"},
-        {title:"Achtung!",desc:"Hole Hilfe!\nNotarztmittel, weitere Rettungsmittel am Weg?",color:"#f59e0b",icon:"📞"},
-        {title:"Maßnahme",desc:"CPR starten\nDefibrillator anschließen",color:"#22c55e",icon:"💚"},
-        {title:"Entscheidung",desc:"Rhythmusanalyse\nPulskontrolle",color:"#3b82f6",icon:"📊"},
-        {title:"Schockbar: VF/pulslose VT",desc:"→ Schock abgeben\n→ CPR fortsetzen 2 Min\n→ Adrenalin nach 3. Defi (alle 3-5 Min)\n→ Amiodaron nach 3. Defi (300mg) & 5. Defi (150mg)",color:"#f97316",icon:"⚡"},
-        {title:"Nicht schockbar: PEA/Asystolie",desc:"→ CPR fortsetzen 2 Min\n→ Adrenalin 1mg i.v. sofort\n→ danach alle 3-5 Minuten",color:"#8b5cf6",icon:"💜"},
-        {title:"ROSC!",desc:"Kreislauf bestätigen: Puls, CO₂, EKG\n\n• SpO₂ 94-98%\n• CO₂ Normokapnie 35-45 mmHg\n• 12-Kanal-EKG\n• Ursache erkennen\n• Normaltemperatur\n• Temperaturkontrolle 32-36°C ≥24h",color:"#10b981",icon:"🏥"}
-      ];
-      const s = steps[step];
-      return React.createElement('div', null,
-        React.createElement('h2', {style:{fontFamily:"'Playfair Display',serif",fontSize:'26px',color:'#f0f0f0',marginBottom:'16px'}}, 'ALS-Algorithmus'),
-        React.createElement('div', {style:{background:'#0f1629',border:`2px solid ${s.color}`,borderRadius:'20px',padding:'28px',textAlign:'center',minHeight:'200px',display:'flex',flexDirection:'column',justifyContent:'center',transition:'0.4s',boxShadow:`0 0 40px ${s.color}22`}},
-          React.createElement('div', {style:{fontSize:'36px',marginBottom:'12px'}}, s.icon),
-          React.createElement('div', {style:{color:s.color,fontWeight:800,fontSize:'16px',textTransform:'uppercase',letterSpacing:'1.5px',marginBottom:'12px'}}, s.title),
-          React.createElement('div', {style:{color:'#d0d8e4',fontSize:'14px',lineHeight:1.8,whiteSpace:'pre-line'}}, s.desc)
-        ),
-        React.createElement('div', {style:{display:'flex',justifyContent:'center',gap:'6px',marginTop:'20px'}},
-          steps.map((_,i) => React.createElement('div', {key:i,onClick:()=>setStep(i),style:{width:i===step?'32px':'10px',height:'10px',borderRadius:'5px',background:i===step?s.color:'#2a2a4e',cursor:'pointer',transition:'all 0.3s'}}))
-        ),
-        React.createElement('div', {style:{display:'flex',gap:'12px',marginTop:'16px'}},
-          React.createElement('button', {onClick:()=>setStep(Math.max(0,step-1)),disabled:step===0,style:{flex:1,padding:'14px',borderRadius:'12px',border:'1px solid #2a2a4e',background:'transparent',color:step===0?'#444':'#8899aa',fontSize:'14px',fontFamily:"'DM Sans'",cursor:step===0?'default':'pointer',fontWeight:600}}, '← Zurück'),
-          React.createElement('button', {onClick:()=>setStep(Math.min(steps.length-1,step+1)),disabled:step===steps.length-1,style:{flex:1,padding:'14px',borderRadius:'12px',border:'none',background:step===steps.length-1?'#333':s.color,color:'#fff',fontSize:'14px',fontFamily:"'DM Sans'",cursor:step===steps.length-1?'default':'pointer',fontWeight:700}}, 'Weiter →')
-        ),
-        React.createElement('div', {style:{marginTop:'24px',padding:'16px',background:'#0d1117',borderRadius:'12px',border:'1px solid #1a1a3e'}},
-          React.createElement('div', {style:{color:'#f59e0b',fontWeight:700,fontSize:'13px',marginBottom:'8px'}}, '📋 Atemwegssicherung'),
-          React.createElement('div', {style:{color:'#8899aa',fontSize:'12px',lineHeight:1.7}},
-            'NFS ohne NKI → ', React.createElement('span',{style:{color:'#22c55e'}},'Larynxtubus LTS-D'), ' (Cuffdruck 50-60 cm H₂O)', React.createElement('br'),
-            'NFS mit NKI → ', React.createElement('span',{style:{color:'#dc2626'}},'Endotracheale Intubation'), ' (Cuffdruck 20-30 cm H₂O)', React.createElement('br'),
-            'Evaluierung: primär Kapnografie, sekundär Auskultation', React.createElement('br'),
-            'Beatmungsfrequenz: ', React.createElement('span',{style:{color:'#f0f0f0',fontWeight:700}},'10/min')
-          )
-        )
-      );
-    }
-
-    function CRMView() {
-      const [exp, setExp] = useState(null);
-      return React.createElement('div', null,
-        React.createElement('h2', {style:{fontFamily:"'Playfair Display',serif",fontSize:'26px',color:'#f0f0f0',marginBottom:'16px'}}, 'CRM-Leitsätze'),
-        React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'8px'}},
-          CRM_LEITSAETZE.map((ls,idx) =>
-            React.createElement('div', {key:ls.nr,onClick:()=>setExp(exp===idx?null:idx),
-              style:{background:exp===idx?'#16213e':'#0f1629',border:`1px solid ${exp===idx?'#dc2626':'#1a1a3e'}`,borderRadius:'12px',padding:'14px 16px',cursor:'pointer',transition:'0.25s'}},
-              React.createElement('div', {style:{display:'flex',alignItems:'flex-start',gap:'12px'}},
-                React.createElement('div', {style:{width:'30px',height:'30px',borderRadius:'8px',background:exp===idx?'#dc2626':'#1a1a3e',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:800,color:'#fff',flexShrink:0,transition:'0.3s'}}, ls.nr),
-                React.createElement('div', {style:{flex:1}},
-                  React.createElement('div', {style:{color:'#e0e8f0',fontSize:'13px',fontWeight:600,lineHeight:1.5}}, ls.text),
-                  exp===idx && React.createElement('div', {style:{color:'#8899aa',fontSize:'12px',marginTop:'8px',lineHeight:1.6,paddingTop:'8px',borderTop:'1px solid #1a1a3e'}}, '💡 '+ls.detail)
-                )
-              )
-            )
-          )
-        ),
-        React.createElement('div', {style:{marginTop:'24px',padding:'20px',background:'#0d1117',borderRadius:'16px',border:'1px solid #f59e0b33'}},
-          React.createElement('div', {style:{color:'#f59e0b',fontWeight:700,fontSize:'14px',marginBottom:'10px'}}, '🤝 Teamrollen & Speak-Up'),
-          React.createElement('div', {style:{color:'#c0c8d4',fontSize:'12px',lineHeight:1.8}},
-            React.createElement('strong',{style:{color:'#22c55e'}},'Teamleader:in'), ' – Führung, CRM, Überblick', React.createElement('br'),
-            React.createElement('strong',{style:{color:'#3b82f6'}},'Teamfollower:in'), ' – Mitdenken, Zuarbeiten, Entlasten', React.createElement('br'), React.createElement('br'),
-            React.createElement('em',{style:{color:'#f59e0b'}},'Speak-Up: Jedes Teammitglied hat das Recht UND die Verantwortung, auf Gefahren hinzuweisen!')
-          )
-        )
-      );
-    }
-
-    function QuizView() {
-      const [cur, setCur] = useState(0);
-      const [sel, setSel] = useState(null);
-      const [show, setShow] = useState(false);
-      const [score, setScore] = useState(0);
-      const [answered, setAnswered] = useState(0);
-      const [shuffled, setShuffled] = useState([]);
-      useEffect(() => { setShuffled([...QUIZ].sort(()=>Math.random()-0.5)); }, []);
-      const q = shuffled[cur];
-      if (!q) return null;
-      const pick = (idx) => { if(sel!==null)return; setSel(idx); setShow(true); setAnswered(a=>a+1); if(idx===q.correct)setScore(s=>s+1); };
-      const next = () => { setSel(null); setShow(false); setCur(c=>(c+1)%shuffled.length); };
-      const reset = () => { setScore(0); setAnswered(0); setCur(0); setSel(null); setShow(false); setShuffled([...QUIZ].sort(()=>Math.random()-0.5)); };
-
-      return React.createElement('div', null,
-        React.createElement('div', {style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px'}},
-          React.createElement('h2', {style:{fontFamily:"'Playfair Display',serif",fontSize:'26px',color:'#f0f0f0',margin:0}}, 'Quiz'),
-          React.createElement('div', {style:{display:'flex',gap:'12px',alignItems:'center'}},
-            React.createElement('span', {style:{color:answered>0&&score/answered>=0.8?'#22c55e':answered>0&&score/answered>=0.6?'#f59e0b':'#ef4444',fontWeight:800,fontSize:'20px'}}, score+'/'+answered),
-            React.createElement('button', {onClick:reset,style:{background:'#1a1a3e',border:'1px solid #2a2a4e',borderRadius:'8px',color:'#8899aa',padding:'6px 12px',cursor:'pointer',fontSize:'11px'}}, '↻ Reset')
-          )
-        ),
-        React.createElement('div', {style:{color:'#8899aa',fontSize:'12px',marginBottom:'16px'}}, 'Frage '+(cur+1)+' von '+shuffled.length),
-        React.createElement('div', {style:{background:'#0f1629',borderRadius:'16px',padding:'24px',border:'1px solid #1a1a3e',marginBottom:'16px'}},
-          React.createElement('div', {style:{color:'#f0f0f0',fontSize:'15px',fontWeight:600,lineHeight:1.6,marginBottom:'20px'}}, q.q),
-          React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'10px'}},
-            q.options.map((opt,idx) => {
-              let bg='#0d1117',brd='#1a1a3e',tc='#c0c8d4';
-              if(show){if(idx===q.correct){bg='#22c55e22';brd='#22c55e';tc='#22c55e';}else if(idx===sel&&idx!==q.correct){bg='#ef444422';brd='#ef4444';tc='#ef4444';}}
-              return React.createElement('button', {key:idx,onClick:()=>pick(idx),
-                style:{background:bg,border:`2px solid ${brd}`,borderRadius:'12px',padding:'12px 14px',textAlign:'left',cursor:show?'default':'pointer',color:tc,fontSize:'13px',fontFamily:"'DM Sans'",transition:'0.2s',lineHeight:1.5}},
-                React.createElement('span',{style:{fontWeight:700,marginRight:'8px',opacity:0.5}},String.fromCharCode(65+idx)+'.'), opt
-              );
-            })
-          ),
-          show && React.createElement('div', {style:{marginTop:'16px',padding:'14px',borderRadius:'12px',background:sel===q.correct?'#22c55e11':'#ef444411',border:`1px solid ${sel===q.correct?'#22c55e33':'#ef444433'}`}},
-            React.createElement('div', {style:{color:sel===q.correct?'#22c55e':'#ef4444',fontWeight:700,fontSize:'13px',marginBottom:'6px'}}, sel===q.correct?'✅ Richtig!':'❌ Falsch!'),
-            React.createElement('div', {style:{color:'#a0b0c0',fontSize:'12px',lineHeight:1.6}}, q.explanation)
-          )
-        ),
-        show && React.createElement('button', {onClick:next,style:{width:'100%',padding:'16px',borderRadius:'12px',border:'none',background:'#dc2626',color:'#fff',fontSize:'14px',fontWeight:700,fontFamily:"'DM Sans'",cursor:'pointer'}}, 'Nächste Frage →')
-      );
-    }
-
-    function ScenarioView() {
-      const [ci, setCi] = useState(0);
-      const [si, setSi] = useState(0);
-      const [rev, setRev] = useState(false);
-      const sc = SCENARIOS[ci];
-      const switchCase = (i) => { setCi(i); setSi(0); setRev(false); };
-      const nextStep = () => { if(si<sc.steps.length-1){setSi(s=>s+1);setRev(false);} };
-
-      return React.createElement('div', null,
-        React.createElement('h2', {style:{fontFamily:"'Playfair Display',serif",fontSize:'26px',color:'#f0f0f0',marginBottom:'16px'}}, 'Fallbeispiele'),
-        React.createElement('div', {style:{display:'flex',gap:'6px',marginBottom:'20px',flexWrap:'wrap'}},
-          SCENARIOS.map((s,i) => React.createElement('button', {key:i,onClick:()=>switchCase(i),
-            style:{flex:1,minWidth:'80px',padding:'10px',borderRadius:'10px',border:ci===i?'2px solid #dc2626':'1px solid #1a1a3e',background:ci===i?'#dc262622':'#0f1629',color:ci===i?'#dc2626':'#8899aa',fontSize:'11px',fontWeight:600,cursor:'pointer',fontFamily:"'DM Sans'"}
-          }, 'Fall '+(i+1)))
-        ),
-        React.createElement('div', {style:{background:'#0f1629',borderRadius:'16px',padding:'20px',border:'1px solid #f59e0b44',marginBottom:'16px'}},
-          React.createElement('div', {style:{color:'#f59e0b',fontWeight:700,fontSize:'14px',marginBottom:'8px'}}, '🚑 '+sc.title),
-          React.createElement('div', {style:{color:'#c0c8d4',fontSize:'13px',lineHeight:1.7}}, sc.scenario)
-        ),
-        React.createElement('div', {style:{color:'#8899aa',fontSize:'12px',marginBottom:'12px'}}, 'Schritt '+(si+1)+' von '+sc.steps.length),
-        React.createElement('div', {style:{background:'#0f1629',borderRadius:'16px',padding:'24px',border:'2px solid #3b82f6',marginBottom:'16px'}},
-          React.createElement('div', {style:{color:'#3b82f6',fontWeight:700,fontSize:'15px',marginBottom:'16px'}}, '🧠 '+sc.steps[si].prompt),
-          !rev ?
-            React.createElement('button', {onClick:()=>setRev(true),style:{width:'100%',padding:'16px',borderRadius:'12px',border:'2px dashed #2a2a4e',background:'transparent',color:'#8899aa',fontSize:'13px',cursor:'pointer',fontFamily:"'DM Sans'"}}, '🔍 Denk nach... dann tippe für die Lösung') :
-            React.createElement('div', {style:{background:'#22c55e11',border:'1px solid #22c55e33',borderRadius:'12px',padding:'16px'}},
-              React.createElement('div', {style:{color:'#22c55e',fontWeight:700,fontSize:'12px',marginBottom:'8px'}}, '✅ Korrekte Vorgehensweise:'),
-              React.createElement('div', {style:{color:'#c0c8d4',fontSize:'13px',lineHeight:1.7}}, sc.steps[si].answer)
-            )
-        ),
-        React.createElement('div', {style:{display:'flex',gap:'12px'}},
-          React.createElement('button', {onClick:()=>{setSi(0);setRev(false);},style:{flex:1,padding:'14px',borderRadius:'12px',border:'1px solid #2a2a4e',background:'transparent',color:'#8899aa',fontSize:'13px',cursor:'pointer',fontFamily:"'DM Sans'",fontWeight:600}}, '↻ Neustart'),
-          rev && si<sc.steps.length-1 && React.createElement('button', {onClick:nextStep,style:{flex:1,padding:'14px',borderRadius:'12px',border:'none',background:'#dc2626',color:'#fff',fontSize:'13px',cursor:'pointer',fontFamily:"'DM Sans'",fontWeight:700}}, 'Nächster Schritt →'),
-          rev && si===sc.steps.length-1 && React.createElement('div', {style:{flex:1,padding:'14px',borderRadius:'12px',background:'#22c55e22',border:'1px solid #22c55e',color:'#22c55e',fontSize:'13px',textAlign:'center',fontFamily:"'DM Sans'",fontWeight:700}}, '🎯 Szenario abgeschlossen!')
-        )
-      );
-    }
-
-    // ==================== APP ====================
-    function App() {
-      const [tab, setTab] = useState(0);
-      return React.createElement('div', {style:{minHeight:'100vh',background:'linear-gradient(180deg,#0a0e1a 0%,#111827 100%)',color:'#f0f0f0',fontFamily:"'DM Sans',sans-serif"}},
-        React.createElement('div', {style:{maxWidth:'640px',margin:'0 auto',padding:'20px 16px 40px'}},
-          React.createElement('div', {style:{textAlign:'center',marginBottom:'28px'}},
-            React.createElement('div', {style:{display:'inline-flex',alignItems:'center',gap:'10px',background:'#dc262622',border:'1px solid #dc262644',borderRadius:'40px',padding:'8px 20px',marginBottom:'16px'}},
-              React.createElement('span', {style:{fontSize:'18px'}}, '🏥'),
-              React.createElement('span', {style:{color:'#dc2626',fontWeight:700,fontSize:'12px',letterSpacing:'2px',textTransform:'uppercase'}}, 'Rotes Kreuz NÖ')
-            ),
-            React.createElement('h1', {style:{fontFamily:"'Playfair Display',serif",fontSize:'32px',fontWeight:800,color:'#fff',lineHeight:1.1,marginBottom:'8px'}}, 'ALS Training'),
-            React.createElement('p', {style:{color:'#667788',fontSize:'13px'}}, 'NFS Rezertifizierung · ERC Guidelines 2021')
-          ),
-          React.createElement(TabBar, {active:tab, set:setTab}),
-          tab===0 && React.createElement(ABCDEView),
-          tab===1 && React.createElement(ALSAlgoView),
-          tab===2 && React.createElement(CRMView),
-          tab===3 && React.createElement(QuizView),
-          tab===4 && React.createElement(ScenarioView),
-          React.createElement('div', {style:{marginTop:'32px',padding:'16px',background:'#0d1117',borderRadius:'12px',border:'1px solid #1a1a3e'}},
-            React.createElement('div', {style:{color:'#667788',fontSize:'11px',marginBottom:'8px',fontWeight:700,textTransform:'uppercase',letterSpacing:'1px'}}, '📚 Quellen'),
-            React.createElement('div', {style:{display:'flex',flexDirection:'column',gap:'6px'}},
-              [{l:"ERC Guidelines 2021 (GRC)",u:"https://www.grc-org.de/wissenschaft/leitlinien"},
-               {l:"RKNÖ RDmed Leitlinien",u:"https://rdmed.n.roteskreuz.at/books"},
-               {l:"InPASS CRM",u:"https://inpass.de/de-de/crew-resource-management-crm/"}
-              ].map((x,i) => React.createElement('a', {key:i,href:x.u,target:'_blank',rel:'noopener noreferrer',style:{color:'#3b82f6',fontSize:'12px',textDecoration:'none'}}, '→ '+x.l))
-            )
-          )
-        )
-      );
-    }
-
-    ReactDOM.render(React.createElement(App), document.getElementById('root'));
-  </script>
+</script>
 </body>
 </html>
